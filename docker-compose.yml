@@ -1,15 +1,58 @@
 version: '3.1'
 services:
   stats-server:
+    build: stat-service
+    image: stat-service
+    container_name: stat
     ports:
       - "9090:9090"
-
+    depends_on:
+      - stats-db
+    environment:
+      - DB_NAME=stat-service
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=iamroot
+      - DB_HOST=db
+      - spring.datasource.url=jdbc:postgresql://stats-db:5432/stat-service
+      - spring.datasource.username=postgres
+      - spring.datasource.password=iamroot
   stats-db:
     image: postgres:14-alpine
+    container_name: database
+    ports:
+      - "6541:5432"
+    volumes:
+      - /var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=stat-service
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=iamroot
+
 
   ewm-service:
+    build: main-service-spec
+    image: main-service-spec
+    container_name: ewm
     ports:
       - "8080:8080"
-
+    depends_on:
+      - ewm-db
+    environment:
+      - DB_NAME=service-spec
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=iamroot
+      - DB_HOST=db
+      - spring.datasource.url=jdbc:postgresql://ewm-db:5432/service-spec
+      - spring.datasource.username=postgres
+      - spring.datasource.password=iamroot
   ewm-db:
     image: postgres:14-alpine
+    container_name: database
+    ports:
+      - "6540:5432"
+    volumes:
+      - /var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=service-spec
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=iamroot
