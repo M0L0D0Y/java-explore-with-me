@@ -12,7 +12,6 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Getter
 @Setter
