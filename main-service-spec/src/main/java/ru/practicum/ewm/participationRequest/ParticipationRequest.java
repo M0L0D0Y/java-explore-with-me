@@ -1,14 +1,15 @@
 package ru.practicum.ewm.participationRequest;
 
-import lombok.*;
-import org.hibernate.Hibernate;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import ru.practicum.ewm.event.Event;
 import ru.practicum.ewm.user.User;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Getter
 @Setter
