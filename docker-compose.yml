@@ -28,7 +28,6 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=iamroot
 
-
   ewm-service:
     build: main-service-spec
     image: main-service-spec
@@ -38,6 +37,7 @@ services:
     depends_on:
       - ewm-db
     environment:
+      - STAT_SERVER_URL=http://stat:9090
       - DB_NAME=service-spec
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=iamroot
