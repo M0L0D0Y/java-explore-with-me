@@ -1,12 +1,15 @@
 package ru.practicum.ewm.event.dto;
 
-import lombok.Data;
+import lombok.*;
 import ru.practicum.ewm.event.Location;
 import ru.practicum.ewm.common.Create;
 
 import javax.validation.constraints.*;
 
-@Data
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class NewEventDto {
     @Min(20)
     @Max(2000)
@@ -19,6 +22,7 @@ public class NewEventDto {
     @Min(20)
     @NotBlank(groups = Create.class, message = "Нет полного описаня события")
     private String description;
+    @Size(max = 25, message = "Превышен лимит символов")
     @NotBlank(groups = Create.class, message = "Нет даты и времени на которые намечено событие")
     private String eventDate;
     @NotNull(groups = Create.class, message = "Не указана локация проведения события")

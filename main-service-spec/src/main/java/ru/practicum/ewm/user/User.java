@@ -8,6 +8,7 @@ import lombok.ToString;
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 @Entity
 @Table(name = "users")
@@ -24,6 +25,7 @@ public class User {
     @Column(name = "email", unique = true)
     private String email;
     @NotBlank(message = "Нет имени пользователя")
+    @Size(max = 40, message = "Превышен лимит символов")
     @Column(name = "name")
     private String name;
 }

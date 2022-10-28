@@ -4,7 +4,7 @@ import ru.practicum.ewm.event.dto.AdminUpdateEventRequest;
 
 import java.util.List;
 
-public interface AdminEvenService {
+public interface AdminEventService {
     List<Event> findEvents(List<Long> users, List<String> states, List<Long> categories,
                            String rangeStart, String rangeEnd, Integer from, Integer size);
 

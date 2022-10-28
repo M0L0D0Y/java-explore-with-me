@@ -17,12 +17,12 @@ import java.util.stream.Collectors;
 @Validated
 public class AdminEventController {
 
-    private final AdminEvenService adminEvenService;
+    private final AdminEventService adminEventService;
     private final EventMapper eventMapper;
 
-    public AdminEventController(AdminEvenService adminEvenService,
+    public AdminEventController(AdminEventService adminEventService,
                                 EventMapper eventMapper) {
-        this.adminEvenService = adminEvenService;
+        this.adminEventService = adminEventService;
         this.eventMapper = eventMapper;
     }
 
@@ -34,7 +34,7 @@ public class AdminEventController {
                                          @RequestParam(required = false) String rangeEnd,
                                          @RequestParam(defaultValue = "0") @Positive Integer from,
                                          @RequestParam(defaultValue = "10") @Positive Integer size) {
-        List<Event> events = adminEvenService.findEvents(users, states, categories, rangeStart, rangeEnd, from, size);
+        List<Event> events = adminEventService.findEvents(users, states, categories, rangeStart, rangeEnd, from, size);
         return events.stream()
                 .map(eventMapper::toEventFullDto)
                 .collect(Collectors.toList());
@@ -43,19 +43,19 @@ public class AdminEventController {
     @PutMapping(value = "/admin/events/{eventId}")
     public EventFullDto redactionEvent(@PathVariable @Positive Long eventId,
                                        @RequestBody AdminUpdateEventRequest adminUpdateEventRequest) {
-        Event event = adminEvenService.redactionEvent(eventId, adminUpdateEventRequest);
+        Event event = adminEventService.redactionEvent(eventId, adminUpdateEventRequest);
         return eventMapper.toEventFullDto(event);
     }
 
     @PatchMapping(value = "/admin/events/{eventId}/publish")
     public EventFullDto publishEvent(@PathVariable @Positive Long eventId) {
-        Event event = adminEvenService.publishEvent(eventId);
+        Event event = adminEventService.publishEvent(eventId);
         return eventMapper.toEventFullDto(event);
     }
 
     @PatchMapping(value = "/admin/events/{eventId}/reject")
     public EventFullDto rejectedEvent(@PathVariable @Positive Long eventId) {
-        Event event = adminEvenService.rejectedEvent(eventId);
+        Event event = adminEventService.rejectedEvent(eventId);
         return eventMapper.toEventFullDto(event);
     }
 

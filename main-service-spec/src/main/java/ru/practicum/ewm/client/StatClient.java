@@ -24,7 +24,13 @@ public class StatClient extends BaseClient {
 
 
     public void addEndpoint(String ip, String uri, String service, String time) {
-        post(ip, uri, service, time);
+        String path = "/hit";
+        EndpointDto endpointDto = new EndpointDto();
+        endpointDto.setApp(service);
+        endpointDto.setUri(uri);
+        endpointDto.setIp(ip);
+        endpointDto.setTimestamp(time);
+        post(path, endpointDto);
     }
 
     public ResponseEntity<Object> getEndpoint(String start, String end, List<String> uris, Boolean unique) {

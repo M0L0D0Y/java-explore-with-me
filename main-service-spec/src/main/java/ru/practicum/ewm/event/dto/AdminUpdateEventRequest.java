@@ -1,10 +1,12 @@
 package ru.practicum.ewm.event.dto;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import ru.practicum.ewm.event.Location;
 
-@Data
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 public class AdminUpdateEventRequest extends UpdateEventRequest {
 

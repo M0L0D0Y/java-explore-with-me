@@ -8,7 +8,6 @@ import ru.practicum.ewm.event.Event;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
@@ -33,9 +32,8 @@ public class Compilation {
     private Set<Event> events = new HashSet<>();
     @Column(name = "pinned")
     private Boolean pinned;
-    @NotBlank
-    @NotNull
-    @Size(max = 100, message = "Превышено допустимое количество символов в названии")
+    @NotBlank(message = "Нет названия")
+    @Size(max = 100, message = "Превышен лимит символов")
     @Column(name = "title")
     private String title;
 }

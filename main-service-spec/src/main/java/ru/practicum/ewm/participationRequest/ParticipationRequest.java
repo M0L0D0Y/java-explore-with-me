@@ -9,6 +9,7 @@ import ru.practicum.ewm.user.User;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Getter
@@ -21,7 +22,6 @@ public class ParticipationRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotBlank
     @Column(name = "created")
     private LocalDateTime created;
     @ManyToOne
@@ -30,6 +30,8 @@ public class ParticipationRequest {
     @ManyToOne
     @JoinColumn(name = "requester")
     private User requester;
+    @NotBlank(message = "Нет статуса")
+    @Size(max = 10)
     @Column(name = "status")
     private String status;
 }

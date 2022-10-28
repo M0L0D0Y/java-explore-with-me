@@ -1,9 +1,7 @@
-package ru.practicum.ewm.transfer;
+package ru.practicum.ewm.model;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.practicum.ewm.model.EndpointHit;
-import ru.practicum.ewm.model.NewEndpointHitDto;
 import ru.practicum.ewm.service.ConverterDataTime;
 
 import java.time.LocalDateTime;
@@ -17,12 +15,12 @@ public class EndpointHitMapper {
         this.converterDataTime = converterDataTime;
     }
 
-    public EndpointHit toEndpointHit(NewEndpointHitDto newEndpointHitDto) {
+    public EndpointHit toEndpointHit(NewEndpointDto newEndpointDto) {
         EndpointHit endpointHit = new EndpointHit();
-        endpointHit.setApp(newEndpointHitDto.getApp());
-        endpointHit.setIp(newEndpointHitDto.getIp());
-        endpointHit.setUri(newEndpointHitDto.getUri());
-        LocalDateTime timestamp = converterDataTime.toLocalDataTime(newEndpointHitDto.getTimestamp());
+        endpointHit.setApp(newEndpointDto.getApp());
+        endpointHit.setIp(newEndpointDto.getIp());
+        endpointHit.setUri(newEndpointDto.getUri());
+        LocalDateTime timestamp = converterDataTime.toLocalDataTime(newEndpointDto.getTimestamp());
         endpointHit.setTimestamp(timestamp);
         return endpointHit;
     }

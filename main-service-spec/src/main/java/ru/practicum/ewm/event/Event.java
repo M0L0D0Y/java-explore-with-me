@@ -11,6 +11,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Getter
@@ -59,6 +60,8 @@ public class Event {
     @Column(name = "request_moderation")
     private Boolean requestModeration;
     @Column(name = "state")
+    @NotBlank(message = "Нет статуса")
+    @Size(max = 10)
     private String state;
     @Max(120)
     @Min(3)

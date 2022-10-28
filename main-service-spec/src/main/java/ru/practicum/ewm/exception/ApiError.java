@@ -1,15 +1,23 @@
 package ru.practicum.ewm.exception;
 
-import lombok.Data;
+import lombok.*;
 
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class ApiError {
     private List<String> errors;
+    @NotBlank
     private String message;
+    @NotBlank
     private String reason;
+    @NotBlank
     private String status;
+    @NotBlank
     private String timestamp;
 
     public ApiError(List<String> errors, String message, String reason, String status, String timestamp) {

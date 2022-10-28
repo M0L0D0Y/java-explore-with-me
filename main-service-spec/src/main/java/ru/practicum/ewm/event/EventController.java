@@ -43,7 +43,6 @@ public class EventController {
         this.commonMethods = commonMethods;
     }
 
-
     @GetMapping(value = "/events")
     public List<EventShortDto> getEvents(@RequestParam(required = false) String text,
                                          @RequestParam(required = false) List<Integer> categories,
@@ -55,14 +54,10 @@ public class EventController {
                                          @RequestParam(defaultValue = "0") Integer from,
                                          @RequestParam(defaultValue = "10") Integer size,
                                          HttpServletRequest request) {
-
-        log.info("client ip: {}", request.getRemoteAddr());
-        log.info("endpoint path: {}", request.getRequestURI());
-        log.info("servis: {}", "ewm-main-service");
-
         List<Event> eventList = eventService.getEvents(text, categories, paid, rangeStart,
                 rangeEnd, onlyAvailable, sort, from, size);
         sendToStatServer(request);
+        log.info("запрос в статистику отправлен");
         return eventList.stream()
                 .map(eventMapper::toEventShortDto)
                 .collect(Collectors.toList());
@@ -70,11 +65,9 @@ public class EventController {
 
     @GetMapping(value = "/events/{id}")
     public EventFullDto getEvent(@PathVariable @Positive Long id, HttpServletRequest request) {
-        log.info("client ip: {}", request.getRemoteAddr());
-        log.info("endpoint path: {}", request.getRequestURI());
-        log.info("service: {}", "ewm-main-service");
         Event event = eventService.getEvent(id, request);
         sendToStatServer(request);
+        log.info("запрос в статистику отправлен");
         return eventMapper.toEventFullDto(event);
     }
 

@@ -15,22 +15,16 @@ public class BaseClient {
         this.rest = rest;
     }
 
-    protected <T> ResponseEntity<Object> post(String ip, String uri, String service, String time) {
-        Map<String, Object> parameters = Map.of(
-                "ip", ip,
-                "uri", uri,
-                "service", service,
-                "time", time
-        );
-        return post(parameters);
+    protected <T> void post(String path, T body) {
+        post(path, null, body);
     }
 
-    private <T> ResponseEntity<Object> post(@Nullable Map<String, Object> parameters) {
-        return makeAndSendRequest(HttpMethod.POST, "/hit", parameters);
+    private <T> void post(String path, @Nullable Map<String, Object> parameters, T body) {
+        makeAndSendRequest(HttpMethod.POST, path, null, body);
     }
 
-    protected <T> ResponseEntity<Object> get(String start, String end,
-                                             List<String> uris, Boolean unique) {
+    protected ResponseEntity<Object> get(String start, String end,
+                                         List<String> uris, Boolean unique) {
         Map<String, Object> parameters = Map.of(
                 "start", start,
                 "end", end,
@@ -40,14 +34,16 @@ public class BaseClient {
         return get(parameters);
     }
 
-    private <T> ResponseEntity<Object> get(@Nullable Map<String, Object> parameters) {
-        return makeAndSendRequest(HttpMethod.GET, "/stats", parameters);
+    private ResponseEntity<Object> get(@Nullable Map<String, Object> parameters) {
+        return makeAndSendRequest(HttpMethod.GET, "/stats", parameters, null);
     }
 
 
-    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path,
-                                                          @Nullable Map<String, Object> parameters) {
-        HttpEntity<T> requestEntity = new HttpEntity<>(null, defaultHeaders());
+    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method,
+                                                          String path,
+                                                          @Nullable Map<String, Object> parameters,
+                                                          @Nullable T body) {
+        HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders());
 
         ResponseEntity<Object> serverResponse;
         try {

@@ -20,12 +20,12 @@ import java.util.List;
 @Slf4j
 @Service
 @Transactional
-public class AdminEvenServiceImpl implements AdminEvenService {
+public class AdminEventServiceImpl implements AdminEventService {
     private final EntityManager entityManager;
     private final EventStorage eventStorage;
     private final CommonMethods commonMethods;
 
-    public AdminEvenServiceImpl(EntityManager entityManager,
+    public AdminEventServiceImpl(EntityManager entityManager,
                                 EventStorage eventStorage,
                                 CommonMethods commonMethods) {
         this.entityManager = entityManager;
