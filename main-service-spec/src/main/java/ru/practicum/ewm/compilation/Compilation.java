@@ -11,7 +11,6 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 @Getter
@@ -39,17 +38,4 @@ public class Compilation {
     @Size(max = 100, message = "Превышено допустимое количество символов в названии")
     @Column(name = "title")
     private String title;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Compilation)) return false;
-        Compilation book = (Compilation) o;
-        return Objects.equals(getId(), book.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }
