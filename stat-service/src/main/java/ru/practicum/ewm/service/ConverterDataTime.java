@@ -11,7 +11,6 @@ import java.util.Date;
 @Service
 public class ConverterDataTime {
     private static final String PATTERN = "yyyy-MM-dd HH:mm:ss";
-   // private static final String PATTERN = "yyyy-MM-ddTHH:mm:ss";
     private static final SimpleDateFormat sdf =
             new SimpleDateFormat(PATTERN);
 

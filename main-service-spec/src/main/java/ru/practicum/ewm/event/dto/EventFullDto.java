@@ -2,6 +2,7 @@ package ru.practicum.ewm.event.dto;
 
 import lombok.Data;
 import ru.practicum.ewm.category.dto.CategoryDto;
+import ru.practicum.ewm.event.EventState;
 import ru.practicum.ewm.event.Location;
 import ru.practicum.ewm.user.dto.UserShortDto;
 
@@ -36,7 +37,7 @@ public class EventFullDto {
     @NotNull
     private Boolean requestModeration;
     @NotBlank
-    private String state;//Enum: [ PENDING, PUBLISHED, CANCELED ]
+    private EventState state;
     @NotBlank
     private String title;
     @NotNull

@@ -1,4 +1,4 @@
-package ru.practicum.ewm.ecxeption;
+package ru.practicum.ewm.exception;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -41,7 +41,7 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleConflictDataTimeException(final ConflictDataTimeException e) {
         return new ApiError(new ArrayList<>(), e.getMessage(), "Недопустимое значение времени",
                 "FORBIDDEN", commonMethods.toString(LocalDateTime.now()));

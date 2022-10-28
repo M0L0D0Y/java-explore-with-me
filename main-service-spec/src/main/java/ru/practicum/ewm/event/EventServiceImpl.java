@@ -5,17 +5,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.category.Category;
-import ru.practicum.ewm.category.CategoryStorage;
-import ru.practicum.ewm.client.StatClient;
 import ru.practicum.ewm.common.CommonMethods;
-import ru.practicum.ewm.ecxeption.*;
-import ru.practicum.ewm.event.dto.AdminUpdateEventRequest;
 import ru.practicum.ewm.event.dto.UpdateEventRequest;
+import ru.practicum.ewm.exception.ConflictEventStatusException;
+import ru.practicum.ewm.exception.NoRightsException;
+import ru.practicum.ewm.exception.NotFoundException;
+import ru.practicum.ewm.exception.UnavailableException;
 import ru.practicum.ewm.participationRequest.ParticipationRequest;
 import ru.practicum.ewm.participationRequest.ParticipationRequestStorage;
 import ru.practicum.ewm.participationRequest.RequestStatus;
-import ru.practicum.ewm.user.Page;
 import ru.practicum.ewm.user.User;
 
 import javax.persistence.EntityManager;
@@ -25,7 +23,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.servlet.http.HttpServletRequest;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,22 +35,17 @@ public class EventServiceImpl implements EventService {
     private final EntityManager entityManager;
     private final EventStorage eventStorage;
 
-    private final CategoryStorage categoryStorage;
     private final ParticipationRequestStorage requestStorage;
     private final CommonMethods commonMethods;
-    private final StatClient client;
 
     @Autowired
     public EventServiceImpl(EntityManager entityManager, EventStorage eventStorage,
-                            CategoryStorage categoryStorage,
                             ParticipationRequestStorage requestStorage,
-                            CommonMethods commonMethods, StatClient client) {
+                            CommonMethods commonMethods) {
         this.entityManager = entityManager;
         this.eventStorage = eventStorage;
-        this.categoryStorage = categoryStorage;
         this.requestStorage = requestStorage;
         this.commonMethods = commonMethods;
-        this.client = client;
     }
 
     @Override
@@ -73,16 +65,13 @@ public class EventServiceImpl implements EventService {
             throw new UnavailableException("Событие не опубликовано");
         }
         event.setViews(event.getViews() + 1);
-        //передача инфы в статистику
-        sendToStatServer(request);
         return event;
     }
 
     @Override
     public List<Event> getEvents(String text, List<Integer> categories, Boolean paid,
                                  String rangeStart, String rangeEnd, Boolean onlyAvailable,
-                                 String sort, Integer from, Integer size,
-                                 HttpServletRequest request) {
+                                 String sort, Integer from, Integer size) {
 
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Event> cq = cb.createQuery(Event.class);
@@ -115,8 +104,8 @@ public class EventServiceImpl implements EventService {
                 predicates.add(searchPaid);
             }
         }
-        predicates.add(buildingPredicateForSearchByStart(rangeStart, cb, eventRoot));
-        predicates.add(buildingPredicateForSearchByEnd(rangeEnd, cb, eventRoot));
+        predicates.add(commonMethods.buildingPredicateForSearchByStart(rangeStart, cb, eventRoot));
+        predicates.add(commonMethods.buildingPredicateForSearchByEnd(rangeEnd, cb, eventRoot));
         Predicate[] param = new Predicate[predicates.size()];
         for (int i = 0; i < predicates.size(); i++) {
             param[i] = predicates.get(i);
@@ -135,44 +124,15 @@ public class EventServiceImpl implements EventService {
         for (Event event : results) {
             event.setViews(event.getViews() + 1);
         }
-        sendToStatServer(request);
+
         return results;
     }
 
-    @Override
-    public List<Event> findEvents(List<Long> users, List<String> states, List<Long> categories,
-                                  String rangeStart, String rangeEnd, Integer from, Integer size) {
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Event> cq = cb.createQuery(Event.class);
-        Root<Event> eventRoot = cq.from(Event.class);
-        List<Predicate> predicates = new LinkedList<>();
-
-        if (!(users.isEmpty())) {
-            predicates.add(eventRoot.get("initiator").get("id").in(users));
-        }
-        if (!(states.isEmpty())) {
-            predicates.add(eventRoot.get("state").in(states));
-        }
-        if (!(categories.isEmpty())) {
-            predicates.add(eventRoot.get("category").in(categories));
-        }
-        predicates.add(buildingPredicateForSearchByStart(rangeStart, cb, eventRoot));
-        predicates.add(buildingPredicateForSearchByEnd(rangeEnd, cb, eventRoot));
-        Predicate[] param = new Predicate[predicates.size()];
-        for (int i = 0; i < predicates.size(); i++) {
-            param[i] = predicates.get(i);
-        }
-        cq.select(eventRoot).where(param);
-        TypedQuery<Event> query = entityManager.createQuery(cq);
-        List<Event> results = query.setMaxResults(size).setFirstResult(from).getResultList();
-        log.info("Найдены все события соответствующие заданным фильтрам");
-        return results;
-    }
 
     @Override
     public List<Event> getEventsForUser(long userId, int from, int size) {
         commonMethods.checkExistUser(userId);
-        Pageable pageable = Page.getPageable(from, size);
+        Pageable pageable = commonMethods.getPageable(from, size);
         List<Event> events = eventStorage.findByInitiatorId(userId, pageable);
         log.info("найдены все события добавленные пользователес с id {}", userId);
         return events;
@@ -184,7 +144,7 @@ public class EventServiceImpl implements EventService {
         commonMethods.checkExistUser(userId);
         Event event = checkConditionForUpdate(userId, updateEventRequest);
         checkUserIdAndOwnerEvent(userId, event.getInitiator().getId());
-        Event updatedEvent = eventStorage.save(updateEvent(event, updateEventRequest));
+        Event updatedEvent = eventStorage.save(commonMethods.updateEvent(event, updateEventRequest));
 
         log.info("Обновили событие с id " + updateEventRequest.getEventId());
         return updatedEvent;
@@ -252,112 +212,6 @@ public class EventServiceImpl implements EventService {
         return confirmRequest;
     }
 
-    @Override
-    @Transactional
-    public Event redactionEvent(long eventId, AdminUpdateEventRequest adminUpdateEventRequest) {
-        Event event = commonMethods.checkExistEvent(eventId);
-        Event redactedEvent = eventStorage.save(updateEvent(event, adminUpdateEventRequest));
-        if (adminUpdateEventRequest.getLocation() != null) {
-            event.setLocation(adminUpdateEventRequest.getLocation());
-            log.info("Обновили локацию события");
-        }
-        log.info("Событие с id {} отредактировано", event);
-        return redactedEvent;
-    }
-
-    @Override
-    @Transactional
-    public Event publishEvent(long eventId) {
-        Event event = commonMethods.checkExistEvent(eventId);
-        checkDateTime(LocalDateTime.now(), event);
-        if (!(event.getState().equals(EventState.PENDING.toString()))) {
-            throw new UnavailableException("Событие не ожидает публикации");
-        }
-        event.setState(EventState.PUBLISHED.toString());
-        Event publishedEvent = eventStorage.save(event);
-        log.info("Событие с id {} опубликовано", eventId);
-        return publishedEvent;
-    }
-
-    @Override
-    @Transactional
-    public Event rejectedEvent(long eventId) {
-        Event event = commonMethods.checkExistEvent(eventId);
-        if (event.getState().equals(EventState.PUBLISHED.toString())) {
-            throw new UnavailableException("Событие уже опубликовано");
-        }
-        event.setState(EventState.CANCELED.toString());
-        Event publishedEvent = eventStorage.save(event);
-        log.info("Событие с id {} отклонено", eventId);
-        return publishedEvent;
-    }
-
-    private Predicate buildingPredicateForSearchByStart(String rangeStart,
-                                                        CriteriaBuilder cb,
-                                                        Root<Event> eventRoot) {
-        Predicate predicate;
-        if (!(rangeStart.isEmpty())) {
-            predicate = cb.greaterThan(eventRoot.get("eventDate"),
-                    cb.literal(commonMethods.toLocalDataTime(rangeStart)));
-        } else {
-            predicate = cb.greaterThan(eventRoot.get("eventDate"),
-                    cb.literal(LocalDateTime.now()));
-        }
-        return predicate;
-    }
-
-    private Predicate buildingPredicateForSearchByEnd(String rangeEnd,
-                                                      CriteriaBuilder cb,
-                                                      Root<Event> eventRoot) {
-        Predicate predicate;
-        if (!(rangeEnd.isEmpty())) {
-            predicate = cb.lessThan(eventRoot.get("eventDate"),
-                    cb.literal(commonMethods.toLocalDataTime(rangeEnd)));
-        } else {
-            predicate = cb.lessThan(eventRoot.get("eventDate"),
-                    cb.literal(LocalDateTime.now()));
-        }
-        return predicate;
-    }
-
-    private Event updateEvent(Event oldEvent, UpdateEventRequest updateEventRequest) {
-        if (updateEventRequest.getEventDate() != null) {
-            LocalDateTime eventDate = commonMethods.toLocalDataTime(updateEventRequest.getEventDate());
-            oldEvent.setEventDate(eventDate);
-            log.info("Обновили дату события на " + eventDate);
-        }
-        if (updateEventRequest.getPaid() != null) {
-            oldEvent.setPaid(updateEventRequest.getPaid());
-            log.info("Обновили флаг платности события на " + updateEventRequest.getPaid());
-        }
-        if (updateEventRequest.getAnnotation() != null) {
-            oldEvent.setAnnotation(updateEventRequest.getAnnotation());
-            log.info("Обновили краткое описание события на " + updateEventRequest.getAnnotation());
-        }
-        if (updateEventRequest.getCategory() != null) {
-            Category category = categoryStorage.findById(updateEventRequest.getCategory())
-                    .stream()
-                    .findAny()
-                    .orElseThrow(() -> new NotFoundException("Категории с таким id нет " +
-                            updateEventRequest.getCategory()));
-            oldEvent.setCategory(category);
-            log.info("Обновили категорию события на " + category);
-        }
-        if (updateEventRequest.getDescription() != null) {
-            oldEvent.setDescription(updateEventRequest.getDescription());
-            log.info("Обновили полное описание события");
-        }
-        if (updateEventRequest.getParticipantLimit() != null) {
-            oldEvent.setParticipantLimit(updateEventRequest.getParticipantLimit());
-            log.info("Обновили лимит пользователей на " + updateEventRequest.getParticipantLimit());
-        }
-        if (updateEventRequest.getTitle() != null) {
-            oldEvent.setTitle(updateEventRequest.getTitle());
-            log.info("Обновили заголовок события на " + updateEventRequest.getTitle());
-        }
-        return oldEvent;
-    }
-
     private Event checkConditionForUpdate(long userId, UpdateEventRequest updateEventRequest) {
         Event event = eventStorage.findById(updateEventRequest.getEventId()).stream()
                 .findAny()
@@ -372,22 +226,12 @@ public class EventServiceImpl implements EventService {
         return event;
     }
 
-    private void checkDateTime(LocalDateTime start, Event event) {
-        if (start.isAfter(event.getEventDate())) {
-            throw new ConflictDataTimeException("Время старта события в прошлом");
-        }
-        Duration duration = Duration.between(start, event.getEventDate());
-        if (duration.toHours() < 2) {
-            throw new ConflictDataTimeException("Время старта события раньше, чем 2 часа от текущего времени");
-        }
-    }
-
     private void addField(Long userId, Event event) {
         User user = commonMethods.checkExistUser(userId);
         event.setInitiator(user);
         event.setConfirmedRequests(0L);
         LocalDateTime start = LocalDateTime.now();
-        checkDateTime(start, event);
+        commonMethods.checkDateTime(start, event);
         event.setCreatedOn(start);
         event.setState(EventState.PENDING.toString());
         event.setViews(0L);
@@ -399,11 +243,5 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private void sendToStatServer(HttpServletRequest request) {
-        String ip = request.getRemoteAddr();
-        String uri = request.getRequestURI();
-        String service = "ewm-main-service";
-        String time = commonMethods.toString(LocalDateTime.now());
-        client.addEndpoint(ip, uri, service, time);
-    }
+
 }

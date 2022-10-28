@@ -5,18 +5,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.ecxeption.NotFoundException;
+import ru.practicum.ewm.exception.NotFoundException;
 
 import java.util.List;
 
 @Slf4j
 @Service
 @Transactional
-public class UserServiceImpl implements UserService {
+public class AdminUserServiceImpl implements AdminUserService {
     private final UserStorage userStorage;
 
     @Autowired
-    public UserServiceImpl(UserStorage userStorage) {
+    public AdminUserServiceImpl(UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 

@@ -7,9 +7,10 @@ import ru.practicum.ewm.category.dto.CategoryDto;
 import ru.practicum.ewm.category.dto.CategoryMapper;
 import ru.practicum.ewm.common.CommonMethods;
 import ru.practicum.ewm.event.Event;
+import ru.practicum.ewm.event.EventState;
+import ru.practicum.ewm.user.User;
 import ru.practicum.ewm.user.dto.UserMapper;
 import ru.practicum.ewm.user.dto.UserShortDto;
-import ru.practicum.ewm.user.User;
 
 @Service
 public class EventMapper {
@@ -50,7 +51,8 @@ public class EventMapper {
             eventFullDto.setPublishedOn(publishedOn);
         }
         eventFullDto.setRequestModeration(event.getRequestModeration());
-        eventFullDto.setState(event.getState());
+        EventState state = EventState.valueOf(event.getState());
+        eventFullDto.setState(state);
         eventFullDto.setTitle(event.getTitle());
         eventFullDto.setViews(event.getViews());
         return eventFullDto;

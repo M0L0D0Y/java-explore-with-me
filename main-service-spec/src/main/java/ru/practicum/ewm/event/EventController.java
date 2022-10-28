@@ -4,15 +4,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.ewm.event.dto.*;
+import ru.practicum.ewm.client.StatClient;
+import ru.practicum.ewm.common.CommonMethods;
 import ru.practicum.ewm.common.Create;
 import ru.practicum.ewm.common.Update;
+import ru.practicum.ewm.event.dto.*;
 import ru.practicum.ewm.participationRequest.ParticipationRequest;
 import ru.practicum.ewm.participationRequest.dto.ParticipationRequestDto;
 import ru.practicum.ewm.participationRequest.dto.ParticipationRequestMapper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Positive;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,15 +28,19 @@ public class EventController {
     private final EventService eventService;
     private final EventMapper eventMapper;
     private final ParticipationRequestMapper requestMapper;
+    private final StatClient client;
+    private final CommonMethods commonMethods;
 
 
     @Autowired
     public EventController(EventService eventService,
                            EventMapper eventMapper,
-                           ParticipationRequestMapper requestMapper) {
+                           ParticipationRequestMapper requestMapper, StatClient client, CommonMethods commonMethods) {
         this.eventService = eventService;
         this.eventMapper = eventMapper;
         this.requestMapper = requestMapper;
+        this.client = client;
+        this.commonMethods = commonMethods;
     }
 
 
@@ -54,7 +61,8 @@ public class EventController {
         log.info("servis: {}", "ewm-main-service");
 
         List<Event> eventList = eventService.getEvents(text, categories, paid, rangeStart,
-                rangeEnd, onlyAvailable, sort, from, size, request);
+                rangeEnd, onlyAvailable, sort, from, size);
+        sendToStatServer(request);
         return eventList.stream()
                 .map(eventMapper::toEventShortDto)
                 .collect(Collectors.toList());
@@ -66,6 +74,7 @@ public class EventController {
         log.info("endpoint path: {}", request.getRequestURI());
         log.info("service: {}", "ewm-main-service");
         Event event = eventService.getEvent(id, request);
+        sendToStatServer(request);
         return eventMapper.toEventFullDto(event);
     }
 
@@ -135,36 +144,11 @@ public class EventController {
         return requestMapper.toParRequestDto(request);
     }
 
-    @GetMapping(value = "/admin/events")
-    public List<EventFullDto> findEvents(@RequestParam(required = false) List<Long> users,
-                                         @RequestParam(required = false) List<String> states,
-                                         @RequestParam(required = false) List<Long> categories,
-                                         @RequestParam(required = false) String rangeStart,
-                                         @RequestParam(required = false) String rangeEnd,
-                                         @RequestParam(defaultValue = "0") @Positive Integer from,
-                                         @RequestParam(defaultValue = "10") @Positive Integer size) {
-        List<Event> events = eventService.findEvents(users, states, categories, rangeStart, rangeEnd, from, size);
-        return events.stream()
-                .map(eventMapper::toEventFullDto)
-                .collect(Collectors.toList());
-    }
-
-    @PutMapping(value = "/admin/events/{eventId}")
-    public EventFullDto redactionEvent(@PathVariable @Positive Long eventId,
-                                       @RequestBody AdminUpdateEventRequest adminUpdateEventRequest) {
-        Event event = eventService.redactionEvent(eventId, adminUpdateEventRequest);
-        return eventMapper.toEventFullDto(event);
-    }
-
-    @PatchMapping(value = "/admin/events/{eventId}/publish")
-    public EventFullDto publishEvent(@PathVariable @Positive Long eventId) {
-        Event event = eventService.publishEvent(eventId);
-        return eventMapper.toEventFullDto(event);
-    }
-
-    @PatchMapping(value = "/admin/events/{eventId}/reject")
-    public EventFullDto rejectedEvent(@PathVariable @Positive Long eventId) {
-        Event event = eventService.rejectedEvent(eventId);
-        return eventMapper.toEventFullDto(event);
+    private void sendToStatServer(HttpServletRequest request) {
+        String ip = request.getRemoteAddr();
+        String uri = request.getRequestURI();
+        String service = "ewm-main-service";
+        String time = commonMethods.toString(LocalDateTime.now());
+        client.addEndpoint(ip, uri, service, time);
     }
 }

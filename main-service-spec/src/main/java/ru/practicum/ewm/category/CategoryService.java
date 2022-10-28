@@ -7,9 +7,5 @@ public interface CategoryService {
 
     Category getCategoryById(long id);
 
-    void deleteCategoryById(long id);
 
-    Category addCategory(Category category);
-
-    Category updateCategory(Category category);
 }

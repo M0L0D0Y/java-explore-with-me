@@ -4,10 +4,12 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.Hibernate;
 import ru.practicum.ewm.event.Event;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -32,15 +34,18 @@ public class Compilation {
     private Set<Event> events = new HashSet<>();
     @Column(name = "pinned")
     private Boolean pinned;
+    @NotBlank
+    @NotNull
+    @Size(max = 100, message = "Превышено допустимое количество символов в названии")
     @Column(name = "title")
     private String title;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Compilation that = (Compilation) o;
-        return id != null && Objects.equals(id, that.id);
+        if (!(o instanceof Compilation)) return false;
+        Compilation book = (Compilation) o;
+        return Objects.equals(getId(), book.getId());
     }
 
     @Override

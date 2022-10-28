@@ -4,11 +4,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.Hibernate;
 import ru.practicum.ewm.category.Category;
 import ru.practicum.ewm.user.User;
 
 import javax.persistence.*;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -22,6 +24,9 @@ public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Min(20)
+    @Max(2000)
+    @NotBlank(message = "Нет краткого описания события")
     @Column(name = "annotation")
     private String annotation;
     @ManyToOne
@@ -31,6 +36,9 @@ public class Event {
     private Long confirmedRequests;
     @Column(name = "created_on")
     private LocalDateTime createdOn;
+    @Max(7000)
+    @Min(20)
+    @NotBlank(message = "Нет полного описаня события")
     @Column(name = "description")
     private String description;
     @Column(name = "event_date")
@@ -53,6 +61,9 @@ public class Event {
     private Boolean requestModeration;
     @Column(name = "state")
     private String state;
+    @Max(120)
+    @Min(3)
+    @NotBlank(message = "Не указан заголовок события")
     @Column(name = "title")
     private String title;
     @Column(name = "views")
@@ -61,9 +72,9 @@ public class Event {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Event event = (Event) o;
-        return id != null && Objects.equals(id, event.id);
+        if (!(o instanceof Event)) return false;
+        Event book = (Event) o;
+        return Objects.equals(getId(), book.getId());
     }
 
     @Override
