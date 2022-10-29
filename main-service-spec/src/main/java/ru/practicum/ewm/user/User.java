@@ -9,6 +9,8 @@ import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -28,5 +30,14 @@ public class User {
     @Size(max = 40, message = "Превышен лимит символов")
     @Column(name = "name")
     private String name;
+    //Для подписок
+    @ManyToMany(cascade = {CascadeType.ALL})
+    @JoinTable(
+            name = "friends",
+            joinColumns = {@JoinColumn(name = "user_id")},
+            inverseJoinColumns = {@JoinColumn(name = "friend_id")}
+    )
+    @ToString.Exclude
+    private Set<User> friends = new HashSet<>();
 }
 

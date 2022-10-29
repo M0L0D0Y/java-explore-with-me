@@ -16,4 +16,6 @@ public interface EventStorage extends JpaRepository<Event, Long> {
     @Query("select e from Event e where e.id in :eventsId")
     Set<Event> findEventsForCompilation(List<Long> eventsId);
 
+    List<Event> functionName(long userId, long friendId, String status);
+
 }
