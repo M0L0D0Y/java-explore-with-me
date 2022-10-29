@@ -34,35 +34,35 @@ public class FriendController {
     }
 
     @PostMapping(value = "/users/{userId}/friends/{friendId}")
-    public String addFriend(@PathVariable @Positive Long userId,
+    public String addFriend(@PathVariable @NotNull @Positive Long userId,
                             @PathVariable @NotNull @Positive Long friendId) {
         friendService.addFriend(userId, friendId);
         return "Пользователь добавлен в друзья";
     }
 
     @DeleteMapping(value = "/users/{userId}/friends/{friendId}")
-    public String deleteFriend(@PathVariable @Positive Long userId,
+    public String deleteFriend(@PathVariable @NotNull @Positive Long userId,
                                @PathVariable @NotNull @Positive Long friendId) {
         friendService.deleteFriend(userId, friendId);
         return "Пользователь удален из в друзей";
     }
 
     @GetMapping(value = "/users/{userId}/friends")
-    public List<UserDto> getFriends(@PathVariable @Positive Long userId) {
+    public List<UserDto> getFriends(@PathVariable @NotNull @Positive Long userId) {
         Set<User> users = friendService.getFriends(userId);
         return users.stream().map(userMapper::toUserDto).collect(Collectors.toList());
     }
 
     @GetMapping(value = "/users/{userId}/friends/{friendId}/events")
-    public List<EventShortDto> getEventsFriend(@PathVariable @Positive Long userId,
-                                               @PathVariable @Positive Long friendId,
-                                               @RequestParam(defaultValue = "false") Boolean common) {
+    public List<EventShortDto> getEventsFriend(@PathVariable @NotNull @Positive Long userId,
+                                               @PathVariable @NotNull @Positive Long friendId,
+                                               @RequestParam(defaultValue = "false") @NotNull Boolean common) {
         List<Event> events = friendService.getEventsByFriendId(userId, friendId, common);
         return events.stream().map(eventMapper::toEventShortDto).collect(Collectors.toList());
     }
 
     @GetMapping(value = "/users/{userId}/friends/events")
-    public List<EventShortDto> getEventsAllFriends(@PathVariable @Positive Long userId) {
+    public List<EventShortDto> getEventsAllFriends(@PathVariable @NotNull @Positive Long userId) {
         List<Event> events = friendService.getEventsAllFriends(userId);
         return events.stream().map(eventMapper::toEventShortDto).collect(Collectors.toList());
     }
