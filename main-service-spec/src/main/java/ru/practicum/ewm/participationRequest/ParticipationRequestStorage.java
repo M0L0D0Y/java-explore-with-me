@@ -2,13 +2,11 @@ package ru.practicum.ewm.participationRequest;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.practicum.ewm.event.Event;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Repository
 public interface ParticipationRequestStorage extends JpaRepository<ParticipationRequest, Long> {
@@ -29,4 +27,9 @@ public interface ParticipationRequestStorage extends JpaRepository<Participation
             "and r.status in :status")
     List<Event> findEventsAllFriends(String status, List<Long> userIds);
 
+    @Query("select r.event from ParticipationRequest r " +
+            "where r.event.id in(select r.event.id from ParticipationRequest r " +
+            "where r.requester.id = ?2 and r.status =?3) " +
+            "and  r.requester.id = ?1 and r.status =?3")
+    List<Event> findCommonEventsWithFriend(long userId, long friendId, String status);
 }

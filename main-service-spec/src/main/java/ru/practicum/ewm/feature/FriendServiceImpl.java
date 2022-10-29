@@ -72,7 +72,6 @@ public class FriendServiceImpl implements FriendService {
         return user.getFriends();
     }
 
-    //можно добавить Pageable
     @Override
     public List<Event> getEventsByFriendId(long userId, long friendId, boolean common) {
         User user = commonMethods.checkExistUser(userId);
@@ -81,21 +80,14 @@ public class FriendServiceImpl implements FriendService {
         if (!(listFriends.contains(friend))) {
             throw new UnavailableException("Нельзя получить список событий пользователя, которого нет в списке друзей");
         }
-        List<Event> events = new LinkedList<>();
+        List<Event> events;
         if (!common) {
             events = participationRequestStorage
                     .findEventsByFriendId(friendId, RequestStatus.CONFIRMED.toString());
             log.info("Получены все события в которых участвует пользователь с id {}", friendId);
         } else {
-            List<Event> eventsFriend = participationRequestStorage
-                    .findEventsByFriendId(friendId, RequestStatus.CONFIRMED.toString());
-            List<Event> eventsUser = participationRequestStorage
-                    .findEventsByFriendId(userId, RequestStatus.CONFIRMED.toString());
-            for (Event event : eventsUser) {
-                if (eventsFriend.contains(event)) {
-                    events.add(event);
-                }
-            }
+            events = participationRequestStorage
+                    .findCommonEventsWithFriend(userId, friendId, RequestStatus.CONFIRMED.toString());
             log.info("Получены все события все общие события");
         }
         return events;
