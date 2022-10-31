@@ -1,4 +1,4 @@
-package ru.practicum.ewm.feature;
+package ru.practicum.ewm.subscription;
 
 
 import ru.practicum.ewm.event.Event;
@@ -14,7 +14,7 @@ public interface FriendService {
 
     Set<User> getFriends(long userId);
 
-    List<Event> getEventsByFriendId(long userId, long friendId, boolean common);
+    List<Event> getEventsByFriendId(long userId, long friendId, boolean isCommonFriend);
 
     List<Event> getEventsAllFriends(long userId);
 }

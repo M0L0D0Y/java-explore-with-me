@@ -59,6 +59,7 @@ create table if not exists event_compilations
 create table if not exists friends
 (
     user_id   bigint references users (id) not null,
-    friend_id bigint references users (id) not null
+    friend_id bigint references users (id) not null,
+    PRIMARY KEY (user_id, friend_id)
 );
 
