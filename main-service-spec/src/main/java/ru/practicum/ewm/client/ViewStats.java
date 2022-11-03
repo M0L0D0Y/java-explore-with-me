@@ -1,4 +1,4 @@
-package ru.practicum.ewm.model;
+package ru.practicum.ewm.client;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +15,10 @@ import javax.validation.constraints.Size;
 @RequiredArgsConstructor
 public class ViewStats {
     @NotBlank
-    @Size(max = 100,message = "Превышен лимит символов")
+    @Size(max = 100, message = "Превышен лимит символов")
     private String app;
     @NotBlank
-    @Size(max = 50,message = "Превышен лимит символов")
+    @Size(max = 50, message = "Превышен лимит символов")
     private String uri;
     @NotNull
     private Long hits;

@@ -4,9 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.ewm.category.dto.NewCategoryDto;
 import ru.practicum.ewm.category.dto.CategoryDto;
 import ru.practicum.ewm.category.dto.CategoryMapper;
+import ru.practicum.ewm.category.dto.NewCategoryDto;
 import ru.practicum.ewm.common.Create;
 import ru.practicum.ewm.common.Update;
 
@@ -30,13 +30,17 @@ public class AdminCategoryController {
     @PatchMapping(value = "/admin/categories")
     public CategoryDto updateCategory(@RequestBody @Validated(Update.class) CategoryDto categoryDto) {
         Category category = categoryMapper.toCategoryFromCategoryDto(categoryDto);
-        return categoryMapper.toCategoryDto(adminService.updateCategory(category));
+        CategoryDto updateCategory = categoryMapper.toCategoryDto(adminService.updateCategory(category));
+        log.info("{}", updateCategory);
+        return updateCategory;
     }
 
     @PostMapping(value = "/admin/categories")
     public CategoryDto addCategory(@RequestBody @Validated(Create.class) NewCategoryDto newCategoryDto) {
         Category category = categoryMapper.toCategory(newCategoryDto);
-        return categoryMapper.toCategoryDto(adminService.addCategory(category));
+        CategoryDto newCategory = categoryMapper.toCategoryDto(adminService.addCategory(category));
+        log.info("{}", newCategory);
+        return newCategory;
     }
 
     @DeleteMapping(value = "/admin/categories/{catId}")

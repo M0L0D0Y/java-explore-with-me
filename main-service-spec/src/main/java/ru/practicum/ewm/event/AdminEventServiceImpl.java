@@ -26,8 +26,8 @@ public class AdminEventServiceImpl implements AdminEventService {
     private final CommonMethods commonMethods;
 
     public AdminEventServiceImpl(EntityManager entityManager,
-                                EventStorage eventStorage,
-                                CommonMethods commonMethods) {
+                                 EventStorage eventStorage,
+                                 CommonMethods commonMethods) {
         this.entityManager = entityManager;
         this.eventStorage = eventStorage;
         this.commonMethods = commonMethods;
@@ -85,6 +85,7 @@ public class AdminEventServiceImpl implements AdminEventService {
             throw new UnavailableException("Событие не ожидает публикации");
         }
         event.setState(EventState.PUBLISHED.toString());
+        event.setPublishedOn(LocalDateTime.now());
         Event publishedEvent = eventStorage.save(event);
         log.info("Событие с id {} опубликовано", eventId);
         return publishedEvent;

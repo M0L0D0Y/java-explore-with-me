@@ -35,29 +35,35 @@ public class AdminEventController {
                                          @RequestParam(defaultValue = "0") @Positive Integer from,
                                          @RequestParam(defaultValue = "10") @Positive Integer size) {
         List<Event> events = adminEventService.findEvents(users, states, categories, rangeStart, rangeEnd, from, size);
-        return events.stream()
+        List<EventFullDto> eventFullDtos = events.stream()
                 .map(eventMapper::toEventFullDto)
                 .collect(Collectors.toList());
+        log.info("{}", eventFullDtos);
+        return eventFullDtos;
     }
 
     @PutMapping(value = "/admin/events/{eventId}")
     public EventFullDto redactionEvent(@PathVariable @Positive Long eventId,
                                        @RequestBody AdminUpdateEventRequest adminUpdateEventRequest) {
         Event event = adminEventService.redactionEvent(eventId, adminUpdateEventRequest);
-        return eventMapper.toEventFullDto(event);
+        EventFullDto eventFullDto = eventMapper.toEventFullDto(event);
+        log.info("{}", eventFullDto);
+        return eventFullDto;
     }
 
     @PatchMapping(value = "/admin/events/{eventId}/publish")
     public EventFullDto publishEvent(@PathVariable @Positive Long eventId) {
         Event event = adminEventService.publishEvent(eventId);
-        return eventMapper.toEventFullDto(event);
+        EventFullDto eventFullDto = eventMapper.toEventFullDto(event);
+        log.info("{}", eventFullDto);
+        return eventFullDto;
     }
 
     @PatchMapping(value = "/admin/events/{eventId}/reject")
     public EventFullDto rejectedEvent(@PathVariable @Positive Long eventId) {
         Event event = adminEventService.rejectedEvent(eventId);
-        return eventMapper.toEventFullDto(event);
+        EventFullDto eventFullDto = eventMapper.toEventFullDto(event);
+        log.info("{}", eventFullDto);
+        return eventFullDto;
     }
-
-
 }

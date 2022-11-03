@@ -1,4 +1,4 @@
-package ru.practicum.ewm.model;
+package ru.practicum.ewm.endpiont;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -22,15 +22,15 @@ public class EndpointHit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @NotBlank(message = "Не указан app обновляемого события")
-    @Size(max = 50,message = "Превышен лимит символов")
+    @Size(max = 50, message = "Превышен лимит символов")
     @Column(name = "app")
     private String app;
     @NotBlank(message = "Не указан uri обновляемого события")
-    @Size(max = 100,message = "Превышен лимит символов")
+    @Size(max = 100, message = "Превышен лимит символов")
     @Column(name = "uri")
     private String uri;
     @NotBlank(message = "Не указан ip обновляемого события")
-    @Size(max = 50,message = "Превышен лимит символов")
+    @Size(max = 50, message = "Превышен лимит символов")
     @Column(name = "ip")
     private String ip;
     @NotNull(message = "Не указан timestamp обновляемого события")

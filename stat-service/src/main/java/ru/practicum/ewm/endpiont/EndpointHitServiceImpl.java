@@ -1,12 +1,9 @@
-package ru.practicum.ewm.service;
+package ru.practicum.ewm.endpiont;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.model.EndpointHit;
-import ru.practicum.ewm.model.ViewStats;
-import ru.practicum.ewm.storage.EndpointHitStorage;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -46,7 +43,7 @@ public class EndpointHitServiceImpl implements EndpointHitService {
         Predicate[] param = createPredicates(cb, root, start, end, uris);
         List<EndpointHit> results = search(cq, root, param, unique);
         List<ViewStats> viewStatsList = createListViewStats(results);
-        log.info("Найдены вся статистика соответствующая заданным фильтрам");
+        log.info("Найдена вся статистика соответствующая заданным фильтрам");
         return viewStatsList;
     }
 
@@ -90,7 +87,6 @@ public class EndpointHitServiceImpl implements EndpointHitService {
                                      Predicate[] param, Boolean unique) {
         cq.select(root).where(param);
         if (unique.equals(true)) {
-            //cq.select(root).where(param).distinct(true);
             cq.select(root).where(param).select(root.get("ip")).distinct(true);
         }
         TypedQuery<EndpointHit> query = entityManager.createQuery(cq);

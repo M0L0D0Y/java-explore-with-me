@@ -19,13 +19,13 @@ import java.util.Set;
 @Slf4j
 @Service
 @Transactional(readOnly = true)
-public class FriendServiceImpl implements FriendService {
+public class SubscriptionServiceImpl implements SubscriptionService {
     private final CommonMethods commonMethods;
     private final ParticipationRequestStorage participationRequestStorage;
 
     @Autowired
-    public FriendServiceImpl(CommonMethods commonMethods,
-                             ParticipationRequestStorage participationRequestStorage) {
+    public SubscriptionServiceImpl(CommonMethods commonMethods,
+                                   ParticipationRequestStorage participationRequestStorage) {
         this.commonMethods = commonMethods;
         this.participationRequestStorage = participationRequestStorage;
     }
@@ -37,10 +37,10 @@ public class FriendServiceImpl implements FriendService {
         User friend = commonMethods.checkExistUser(friendId);
         Set<User> listFriends = user.getFriends();
         if (listFriends.contains(friend)) {
-            throw new UnavailableException("Нельзя повторно добавить одного и того же пользователя");
+            throw new UnavailableException("Нельзя повторно подписаться на одного и того же пользователя");
         }
         listFriends.add(friend);
-        log.info("Пользователь с id {} добавил в друзья пользователя с id {}", userId, friendId);
+        log.info("Пользователь с id {} подписался на пользователя с id {}", userId, friendId);
     }
 
     @Override
@@ -50,26 +50,29 @@ public class FriendServiceImpl implements FriendService {
         User friend = commonMethods.checkExistUser(friendId);
         Set<User> listFriends = user.getFriends();
         if (!(listFriends.contains(friend))) {
-            throw new UnavailableException("Нельзя удалить пользователя, которого нет в списке друзей");
+            throw new UnavailableException("Нельзя удалить пользователя, на которого вы не подписаны");
         }
         listFriends.remove(friend);
-        log.info("Пользователь с id {} удалил из друзей пользователя с id {}", userId, friendId);
+        log.info("Пользователь с id {} отписался от пользователя с id {}", userId, friendId);
     }
 
     @Override
     public Set<User> getFriends(long userId) {
         User user = commonMethods.checkExistUser(userId);
-        log.info("Получили список друзей пользователя с id {}", userId);
-        return user.getFriends();
+        log.info("Нашли пользователя с id {}", userId);
+        Set<User> friends = user.getFriends();
+        log.info("Получили список пользователей на которых подписан пользователь с id {}", userId);
+        return friends;
     }
 
     @Override
+    @Transactional
     public List<Event> getEventsByFriendId(long userId, long friendId, boolean isCommonFriend) {
         User user = commonMethods.checkExistUser(userId);
         User friend = commonMethods.checkExistUser(friendId);
         Set<User> listFriends = user.getFriends();
         if (!(listFriends.contains(friend))) {
-            throw new UnavailableException("Нельзя получить список событий пользователя, которого нет в списке друзей");
+            throw new UnavailableException("Нельзя получить список событий пользователя, на которого вы не подписаны");
         }
         List<Event> events;
         if (!isCommonFriend) {
@@ -85,6 +88,7 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
+    @Transactional
     public List<Event> getEventsAllFriends(long userId) {
         User user = commonMethods.checkExistUser(userId);
         Set<User> listFriends = user.getFriends();
@@ -97,7 +101,7 @@ public class FriendServiceImpl implements FriendService {
         }
         List<Event> events = participationRequestStorage
                 .findEventsAllFriends(RequestStatus.CONFIRMED.toString(), idFriends);
-        log.info("Получены все события в которых участвуют ваши друзья");
+        log.info("Получены все события пользователей на которых вы подписаны");
         return events;
     }
 }

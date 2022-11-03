@@ -1,5 +1,6 @@
 package ru.practicum.ewm.subscription;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -19,14 +20,15 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping(path = "/users/{userId}/friends")
 @Validated
-public class FriendController {
-    private final FriendService friendService;
+@Slf4j
+public class SubscriptionController {
+    private final SubscriptionService subscriptionService;
     private final EventMapper eventMapper;
     private final UserMapper userMapper;
 
     @Autowired
-    public FriendController(FriendService friendService, EventMapper eventMapper, UserMapper userMapper) {
-        this.friendService = friendService;
+    public SubscriptionController(SubscriptionService subscriptionService, EventMapper eventMapper, UserMapper userMapper) {
+        this.subscriptionService = subscriptionService;
         this.eventMapper = eventMapper;
         this.userMapper = userMapper;
     }
@@ -34,33 +36,41 @@ public class FriendController {
     @PostMapping(value = "/{friendId}")
     public void addFriend(@PathVariable @NotNull @Positive Long userId,
                           @PathVariable @NotNull @Positive Long friendId) {
-        friendService.addFriend(userId, friendId);
+        subscriptionService.addFriend(userId, friendId);
     }
 
     @DeleteMapping(value = "/{friendId}")
     public void deleteFriend(@PathVariable @NotNull @Positive Long userId,
                              @PathVariable @NotNull @Positive Long friendId) {
-        friendService.deleteFriend(userId, friendId);
+        subscriptionService.deleteFriend(userId, friendId);
     }
 
     @GetMapping()
     public List<UserDto> getFriends(@PathVariable @NotNull @Positive Long userId) {
-        Set<User> users = friendService.getFriends(userId);
-        return users.stream().map(userMapper::toUserDto).collect(Collectors.toList());
+        Set<User> users = subscriptionService.getFriends(userId);
+        List<UserDto> friends = users.stream().map(userMapper::toUserDto).collect(Collectors.toList());
+        log.info("{}", friends);
+        return friends;
     }
 
     @GetMapping(value = "/{friendId}/events")
     public List<EventShortDto> getEventsFriend(@PathVariable @NotNull @Positive Long userId,
                                                @PathVariable @NotNull @Positive Long friendId,
                                                @RequestParam(defaultValue = "false") @NotNull Boolean isCommonFriend) {
-        List<Event> events = friendService.getEventsByFriendId(userId, friendId, isCommonFriend);
-        return events.stream().map(eventMapper::toEventShortDto).collect(Collectors.toList());
+        List<Event> events = subscriptionService.getEventsByFriendId(userId, friendId, isCommonFriend);
+        List<EventShortDto> eventShortDtos = events.stream()
+                .map(eventMapper::toEventShortDto).collect(Collectors.toList());
+        log.info("{}", eventShortDtos);
+        return eventShortDtos;
     }
 
     @GetMapping(value = "/events")
     public List<EventShortDto> getEventsAllFriends(@PathVariable @NotNull @Positive Long userId) {
-        List<Event> events = friendService.getEventsAllFriends(userId);
-        return events.stream().map(eventMapper::toEventShortDto).collect(Collectors.toList());
+        List<Event> events = subscriptionService.getEventsAllFriends(userId);
+        List<EventShortDto> eventShortDtos = events.stream()
+                .map(eventMapper::toEventShortDto).collect(Collectors.toList());
+        log.info("{}", eventShortDtos);
+        return eventShortDtos;
     }
 }
 

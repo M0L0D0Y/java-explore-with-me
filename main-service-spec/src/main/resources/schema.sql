@@ -28,8 +28,7 @@ create table if not exists events
     published_on       timestamp with time zone,
     request_moderation boolean                                             not null,
     state              varchar(15)                                         not null,
-    title              varchar(120)                                        not null,
-    views              bigint                                              not null
+    title              varchar(120)                                        not null
 );
 
 create table if not exists requests

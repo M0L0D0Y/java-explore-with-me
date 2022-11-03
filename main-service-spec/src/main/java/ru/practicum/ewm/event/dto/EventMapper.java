@@ -49,12 +49,12 @@ public class EventMapper {
         if (event.getPublishedOn() != null) {
             String publishedOn = commonMethods.toString(event.getPublishedOn());
             eventFullDto.setPublishedOn(publishedOn);
+            eventFullDto.setViews(commonMethods.getViews(event));
         }
         eventFullDto.setRequestModeration(event.getRequestModeration());
         EventState state = EventState.valueOf(event.getState());
         eventFullDto.setState(state);
         eventFullDto.setTitle(event.getTitle());
-        eventFullDto.setViews(event.getViews());
         return eventFullDto;
     }
 
@@ -73,7 +73,11 @@ public class EventMapper {
         eventShortDto.setInitiator(userShortDto);
         eventShortDto.setPaid(event.getPaid());
         eventShortDto.setTitle(event.getTitle());
-        eventShortDto.setViews(event.getViews());
+        if (event.getPublishedOn() != null) {
+            eventShortDto.setViews(commonMethods.getViews(event));
+        } else {
+            eventShortDto.setViews(0L);
+        }
         return eventShortDto;
     }
 

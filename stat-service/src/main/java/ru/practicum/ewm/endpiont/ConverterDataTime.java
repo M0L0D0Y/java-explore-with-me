@@ -1,4 +1,4 @@
-package ru.practicum.ewm.service;
+package ru.practicum.ewm.endpiont;
 
 import org.springframework.stereotype.Service;
 

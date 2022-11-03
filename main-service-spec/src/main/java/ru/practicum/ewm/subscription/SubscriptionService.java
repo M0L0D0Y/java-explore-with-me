@@ -7,7 +7,7 @@ import ru.practicum.ewm.user.User;
 import java.util.List;
 import java.util.Set;
 
-public interface FriendService {
+public interface SubscriptionService {
     void addFriend(long userId, long friendId);
 
     void deleteFriend(long userId, long friendId);

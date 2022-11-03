@@ -3,12 +3,11 @@ package ru.practicum.ewm.client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Service
 public class StatClient extends BaseClient {
@@ -30,12 +29,11 @@ public class StatClient extends BaseClient {
         endpointDto.setUri(uri);
         endpointDto.setIp(ip);
         endpointDto.setTimestamp(time);
-        post(path, endpointDto);
+        postHit(path, endpointDto);
     }
 
-    public ResponseEntity<Object> getEndpoint(String start, String end, List<String> uris, Boolean unique) {
-        return get(start, end, uris, unique);
+    public ViewStats getEndpoint(LocalDateTime start, LocalDateTime end, Long eventId, Boolean unique) {
+        String path = "/stats?start=%s&end=%s&uris=%s&unique=%s";
+        return getStats(path, start, end, eventId, unique);
     }
-
-
 }

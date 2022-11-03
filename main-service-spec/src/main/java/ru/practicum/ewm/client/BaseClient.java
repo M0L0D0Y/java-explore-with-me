@@ -1,81 +1,45 @@
 package ru.practicum.ewm.client;
 
-import org.springframework.http.*;
-import org.springframework.lang.Nullable;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
+
 
 public class BaseClient {
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     protected final RestTemplate rest;
+
 
     public BaseClient(RestTemplate rest) {
         this.rest = rest;
     }
 
-    protected <T> void post(String path, T body) {
-        post(path, null, body);
+    protected void postHit(String path, EndpointDto hit) {
+        rest.postForEntity(path, hit, EndpointDto.class);
     }
 
-    private <T> void post(String path, @Nullable Map<String, Object> parameters, T body) {
-        makeAndSendRequest(HttpMethod.POST, path, null, body);
-    }
-
-    protected ResponseEntity<Object> get(String start, String end,
-                                         List<String> uris, Boolean unique) {
-        Map<String, Object> parameters = Map.of(
-                "start", start,
-                "end", end,
-                "uris", uris,
-                "unique", unique
+    protected ViewStats getStats(String path,
+                                 LocalDateTime start,
+                                 LocalDateTime end,
+                                 Long eventId,
+                                 Boolean unique) {
+        ViewStats[] stats = rest.getForObject(
+                String.format(
+                        path,
+                        start.format(formatter),
+                        end.format(formatter),
+                        List.of(URLEncoder.encode("/events/" + eventId, StandardCharsets.UTF_8)),
+                        unique),
+                ViewStats[].class
         );
-        return get(parameters);
-    }
-
-    private ResponseEntity<Object> get(@Nullable Map<String, Object> parameters) {
-        return makeAndSendRequest(HttpMethod.GET, "/stats", parameters, null);
-    }
-
-
-    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method,
-                                                          String path,
-                                                          @Nullable Map<String, Object> parameters,
-                                                          @Nullable T body) {
-        HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders());
-
-        ResponseEntity<Object> serverResponse;
-        try {
-            if (parameters != null) {
-                serverResponse = rest.exchange(path, method, requestEntity, Object.class, parameters);
-            } else {
-                serverResponse = rest.exchange(path, method, requestEntity, Object.class);
-            }
-        } catch (HttpStatusCodeException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
+        if (stats != null) {
+            return stats.length > 0 ? stats[0] : null;
+        } else {
+            return null;
         }
-        return prepareResponse(serverResponse);
-    }
-
-    private static ResponseEntity<Object> prepareResponse(ResponseEntity<Object> response) {
-        if (response.getStatusCode().is2xxSuccessful()) {
-            return response;
-        }
-
-        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.status(response.getStatusCode());
-
-        if (response.hasBody()) {
-            return responseBuilder.body(response.getBody());
-        }
-
-        return responseBuilder.build();
-    }
-
-    private HttpHeaders defaultHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-        return headers;
     }
 }

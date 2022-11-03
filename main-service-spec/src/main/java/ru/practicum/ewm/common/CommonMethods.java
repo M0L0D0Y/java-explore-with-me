@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import ru.practicum.ewm.category.Category;
 import ru.practicum.ewm.category.CategoryStorage;
+import ru.practicum.ewm.client.StatClient;
+import ru.practicum.ewm.client.ViewStats;
 import ru.practicum.ewm.compilation.Compilation;
 import ru.practicum.ewm.compilation.CompilationStorage;
 import ru.practicum.ewm.event.Event;
@@ -23,6 +25,7 @@ import ru.practicum.ewm.user.UserStorage;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.servlet.http.HttpServletRequest;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
@@ -42,16 +45,21 @@ public class CommonMethods {
     private final CategoryStorage categoryStorage;
     private final CompilationStorage compilationStorage;
 
+    private final StatClient client;
+
     @Autowired
     public CommonMethods(UserStorage userStorage,
                          EventStorage eventStorage,
                          ParticipationRequestStorage requestStorage,
-                         CategoryStorage categoryStorage, CompilationStorage compilationStorage) {
+                         CategoryStorage categoryStorage,
+                         CompilationStorage compilationStorage,
+                         StatClient client) {
         this.userStorage = userStorage;
         this.eventStorage = eventStorage;
         this.requestStorage = requestStorage;
         this.categoryStorage = categoryStorage;
         this.compilationStorage = compilationStorage;
+        this.client = client;
     }
 
     public LocalDateTime toLocalDataTime(String dateTime) {
@@ -196,5 +204,21 @@ public class CommonMethods {
             page = size / from;
         }
         return PageRequest.of(page, size);
+    }
+
+    public void sendToStatServer(HttpServletRequest request) {
+        String ip = request.getRemoteAddr();
+        String uri = request.getRequestURI();
+        String service = "ewm-main-service";
+        String time = toString(LocalDateTime.now());
+        log.info("ip = {}, uri = {}, service = {}, time = {}", ip, uri, service, time);
+        client.addEndpoint(ip, uri, service, time);
+    }
+
+    public Long getViews(Event event) {
+        Boolean unique = false;
+        ViewStats views = client.getEndpoint(event.getPublishedOn(), LocalDateTime.now(), event.getId(), unique);
+        log.info("Данные из статистики {}", views);
+        return views != null ? views.getHits() : 0L;
     }
 }

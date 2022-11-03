@@ -68,6 +68,4 @@ public class Event {
     @NotBlank(message = "Не указан заголовок события")
     @Column(name = "title")
     private String title;
-    @Column(name = "views")
-    private Long views;
 }
