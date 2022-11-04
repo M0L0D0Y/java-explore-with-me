@@ -11,9 +11,4 @@ public class MainServiceSpec {
         SpringApplication.run(MainServiceSpec.class, args);
     }
 
-    @Bean
-    public RestTemplate getRestTemplate() {
-        return new RestTemplate();
-    }
-
 }

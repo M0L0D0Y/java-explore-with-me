@@ -18,7 +18,6 @@ import java.util.Set;
 
 @Slf4j
 @Service
-@Transactional(readOnly = true)
 public class SubscriptionServiceImpl implements SubscriptionService {
     private final CommonMethods commonMethods;
     private final ParticipationRequestStorage participationRequestStorage;
