@@ -2,6 +2,7 @@ package ru.practicum.ewm.common;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -40,6 +41,11 @@ public class CommonMethods {
     private static final String PATTERN = "yyyy-MM-dd HH:mm:ss";
     private static final SimpleDateFormat sdf =
             new SimpleDateFormat(PATTERN);
+
+    @Value("${stats-post.path}")
+    private String hitPostPath;
+    @Value("${stats-get.path}")
+    private String hitGetPath;
     private final UserStorage userStorage;
     private final EventStorage eventStorage;
     private final ParticipationRequestStorage requestStorage;
@@ -208,7 +214,6 @@ public class CommonMethods {
     }
 
     public void sendToStatServer(HttpServletRequest request) {
-        String path = "http://localhost:9090/hit";
         String ip = request.getRemoteAddr();
         String uri = request.getRequestURI();
         String app = "ewm-main-service";
@@ -219,13 +224,12 @@ public class CommonMethods {
         endpointDto.setIp(ip);
         endpointDto.setUri(uri);
         log.info("{}", endpointDto);
-        client.postHit(path, endpointDto);
+        client.postHit(hitPostPath, endpointDto);
     }
 
     public Long getViews(Event event) {
-        String path = "http://localhost:9090/stats?start=%s&end=%s&uris=%s&unique=%s";
         Boolean unique = false;
-        ViewStats views = client.getStats(path, event.getPublishedOn(), LocalDateTime.now(), event.getId(), unique);
+        ViewStats views = client.getStats(hitGetPath, event.getPublishedOn(), LocalDateTime.now(), event.getId(), unique);
         log.info("Данные из статистики {}", views);
         return views != null ? views.getHits() : 0L;
     }
