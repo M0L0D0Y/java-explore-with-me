@@ -1,9 +1,14 @@
-package ru.practicum.ewm.endpiont;
+package ru.practicum.ewm.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewm.model.EndpointHit;
+import ru.practicum.ewm.model.EndpointHitMapper;
+import ru.practicum.ewm.model.NewEndpointDto;
+import ru.practicum.ewm.model.ViewStats;
+import ru.practicum.ewm.service.EndpointHitService;
 
 import java.time.LocalDateTime;
 import java.util.List;

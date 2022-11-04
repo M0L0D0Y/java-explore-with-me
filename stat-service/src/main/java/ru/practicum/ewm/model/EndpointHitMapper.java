@@ -1,7 +1,8 @@
-package ru.practicum.ewm.endpiont;
+package ru.practicum.ewm.model;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.practicum.ewm.service.ConverterDataTime;
 
 import java.time.LocalDateTime;
 

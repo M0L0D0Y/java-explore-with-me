@@ -12,7 +12,7 @@ import ru.practicum.ewm.participationRequest.ParticipationRequestStorage;
 import ru.practicum.ewm.participationRequest.RequestStatus;
 import ru.practicum.ewm.user.User;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -95,7 +95,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         if (listFriends.isEmpty()) {
             throw new UnavailableException("Вы ни на кого не подписаны");
         }
-        List<Long> idFriends = new LinkedList<>();
+        List<Long> idFriends = new ArrayList<>();
         for (User u : listFriends) {
             idFriends.add(u.getId());
         }

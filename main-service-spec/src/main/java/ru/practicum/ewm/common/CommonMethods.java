@@ -7,7 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import ru.practicum.ewm.category.Category;
 import ru.practicum.ewm.category.CategoryStorage;
-import ru.practicum.ewm.client.StatClient;
+import ru.practicum.ewm.client.Client;
+import ru.practicum.ewm.client.EndpointDto;
 import ru.practicum.ewm.client.ViewStats;
 import ru.practicum.ewm.compilation.Compilation;
 import ru.practicum.ewm.compilation.CompilationStorage;
@@ -45,7 +46,7 @@ public class CommonMethods {
     private final CategoryStorage categoryStorage;
     private final CompilationStorage compilationStorage;
 
-    private final StatClient client;
+    private final Client client;
 
     @Autowired
     public CommonMethods(UserStorage userStorage,
@@ -53,7 +54,7 @@ public class CommonMethods {
                          ParticipationRequestStorage requestStorage,
                          CategoryStorage categoryStorage,
                          CompilationStorage compilationStorage,
-                         StatClient client) {
+                         Client client) {
         this.userStorage = userStorage;
         this.eventStorage = eventStorage;
         this.requestStorage = requestStorage;
@@ -207,17 +208,24 @@ public class CommonMethods {
     }
 
     public void sendToStatServer(HttpServletRequest request) {
+        String path = "http://localhost:9090/hit";
         String ip = request.getRemoteAddr();
         String uri = request.getRequestURI();
-        String service = "ewm-main-service";
+        String app = "ewm-main-service";
         String time = toString(LocalDateTime.now());
-        log.info("ip = {}, uri = {}, service = {}, time = {}", ip, uri, service, time);
-        client.addEndpoint(ip, uri, service, time);
+        EndpointDto endpointDto = new EndpointDto();
+        endpointDto.setApp(app);
+        endpointDto.setTimestamp(time);
+        endpointDto.setIp(ip);
+        endpointDto.setUri(uri);
+        log.info("{}", endpointDto);
+        client.postHit(path, endpointDto);
     }
 
     public Long getViews(Event event) {
+        String path = "http://localhost:9090/stats?start=%s&end=%s&uris=%s&unique=%s";
         Boolean unique = false;
-        ViewStats views = client.getEndpoint(event.getPublishedOn(), LocalDateTime.now(), event.getId(), unique);
+        ViewStats views = client.getStats(path, event.getPublishedOn(), LocalDateTime.now(), event.getId(), unique);
         log.info("Данные из статистики {}", views);
         return views != null ? views.getHits() : 0L;
     }

@@ -1,9 +1,12 @@
-package ru.practicum.ewm.endpiont;
+package ru.practicum.ewm.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewm.storage.EndpointHitStorage;
+import ru.practicum.ewm.model.EndpointHit;
+import ru.practicum.ewm.model.ViewStats;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;

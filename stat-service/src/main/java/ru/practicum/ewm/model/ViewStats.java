@@ -1,4 +1,4 @@
-package ru.practicum.ewm.endpiont;
+package ru.practicum.ewm.model;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
