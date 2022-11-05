@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.ewm.client.StatClient;
 import ru.practicum.ewm.common.CommonMethods;
 import ru.practicum.ewm.common.Create;
 import ru.practicum.ewm.common.Update;
@@ -15,7 +14,6 @@ import ru.practicum.ewm.participationRequest.dto.ParticipationRequestMapper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Positive;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,18 +26,18 @@ public class EventController {
     private final EventService eventService;
     private final EventMapper eventMapper;
     private final ParticipationRequestMapper requestMapper;
-    private final StatClient client;
+
     private final CommonMethods commonMethods;
 
 
     @Autowired
     public EventController(EventService eventService,
                            EventMapper eventMapper,
-                           ParticipationRequestMapper requestMapper, StatClient client, CommonMethods commonMethods) {
+                           ParticipationRequestMapper requestMapper,
+                           CommonMethods commonMethods) {
         this.eventService = eventService;
         this.eventMapper = eventMapper;
         this.requestMapper = requestMapper;
-        this.client = client;
         this.commonMethods = commonMethods;
     }
 
@@ -54,21 +52,25 @@ public class EventController {
                                          @RequestParam(defaultValue = "0") Integer from,
                                          @RequestParam(defaultValue = "10") Integer size,
                                          HttpServletRequest request) {
-        List<Event> eventList = eventService.getEvents(text, categories, paid, rangeStart,
+        commonMethods.sendToStatServer(request);
+        log.info("Отправили пакет данных в статистику");
+        List<Event> events = eventService.getEvents(text, categories, paid, rangeStart,
                 rangeEnd, onlyAvailable, sort, from, size);
-        sendToStatServer(request);
-        log.info("запрос в статистику отправлен");
-        return eventList.stream()
-                .map(eventMapper::toEventShortDto)
-                .collect(Collectors.toList());
+        List<EventShortDto> eventShortDtos = eventMapper.toListEventShortDto(events);
+        log.info("{}", eventShortDtos);
+        return eventShortDtos;
     }
 
     @GetMapping(value = "/events/{id}")
     public EventFullDto getEvent(@PathVariable @Positive Long id, HttpServletRequest request) {
-        Event event = eventService.getEvent(id, request);
-        sendToStatServer(request);
-        log.info("запрос в статистику отправлен");
-        return eventMapper.toEventFullDto(event);
+        commonMethods.sendToStatServer(request);
+        log.info("Отправили пакет данных в статистику");
+        Event event = eventService.getEvent(id);
+        List<Event> events = List.of(event);
+        List<EventFullDto> eventFullDtos = eventMapper.toListEventFullDto(events);
+        EventFullDto eventFullDto = eventFullDtos.get(0);
+        log.info("{}", eventFullDto);
+        return eventFullDto;
     }
 
     @GetMapping(value = "/users/{userId}/events")
@@ -76,9 +78,9 @@ public class EventController {
                                                 @RequestParam(defaultValue = "0") Integer from,
                                                 @RequestParam(defaultValue = "10") Integer size) {
         List<Event> events = eventService.getEventsForUser(userId, from, size);
-        return events.stream()
-                .map(eventMapper::toEventShortDto)
-                .collect(Collectors.toList());
+        List<EventShortDto> eventShortDtos = eventMapper.toListEventShortDto(events);
+        log.info("{}", eventShortDtos);
+        return eventShortDtos;
     }
 
     @PatchMapping(value = "/users/{userId}/events")
@@ -87,28 +89,45 @@ public class EventController {
                                            UpdateEventRequest updateEventRequest) {
 
         Event event = eventService.updateEventForUser(userId, updateEventRequest);
-        return eventMapper.toEventFullDto(event);
+        List<Event> events = List.of(event);
+        List<EventFullDto> eventFullDtos = eventMapper.toListEventFullDto(events);
+        EventFullDto eventFullDto = eventFullDtos.get(0);
+        log.info("{}", eventFullDto);
+        return eventFullDto;
     }
 
     @PostMapping(value = "/users/{userId}/events")
     private EventFullDto addEvent(@PathVariable @Positive Long userId,
                                   @RequestBody @Validated(Create.class) NewEventDto newEventDto) {
-        Event event = eventMapper.toEvent(newEventDto);
-        return eventMapper.toEventFullDto(eventService.addEvent(userId, event));
+        Event newEvent = eventMapper.toEvent(newEventDto);
+        Event event = eventService.addEvent(userId, newEvent);
+        List<Event> events = List.of(event);
+        List<EventFullDto> eventFullDtos = eventMapper.toListEventFullDto(events);
+        EventFullDto eventFullDto = eventFullDtos.get(0);
+        log.info("{}", eventFullDto);
+        return eventFullDto;
     }
 
     @GetMapping(value = "/users/{userId}/events/{eventId}")
     public EventFullDto getFullInfoEventForUser(@PathVariable @Positive Long userId,
                                                 @PathVariable @Positive Long eventId) {
         Event event = eventService.getFullInfoEventForUser(userId, eventId);
-        return eventMapper.toEventFullDto(event);
+        List<Event> events = List.of(event);
+        List<EventFullDto> eventFullDtos = eventMapper.toListEventFullDto(events);
+        EventFullDto eventFullDto = eventFullDtos.get(0);
+        log.info("{}", eventFullDto);
+        return eventFullDto;
     }
 
     @PatchMapping(value = "/users/{userId}/events/{eventId}")
     public EventFullDto cancelEvent(@PathVariable @Positive Long userId,
                                     @PathVariable @Positive Long eventId) {
         Event event = eventService.cancelEvent(userId, eventId);
-        return eventMapper.toEventFullDto(event);
+        List<Event> events = List.of(event);
+        List<EventFullDto> eventFullDtos = eventMapper.toListEventFullDto(events);
+        EventFullDto eventFullDto = eventFullDtos.get(0);
+        log.info("{}", eventFullDto);
+        return eventFullDto;
 
     }
 
@@ -116,9 +135,11 @@ public class EventController {
     public List<ParticipationRequestDto> getRequestsInfoInEvents(@PathVariable @Positive Long userId,
                                                                  @PathVariable @Positive Long eventId) {
         List<ParticipationRequest> requests = eventService.getRequestsInfoInEvents(userId, eventId);
-        return requests.stream()
+        List<ParticipationRequestDto> requestDtoList = requests.stream()
                 .map(requestMapper::toParRequestDto)
                 .collect(Collectors.toList());
+        log.info("{}", requestDtoList);
+        return requestDtoList;
     }
 
     @PatchMapping(value = "/users/{userId}/events/{eventId}/requests/{reqId}/confirm")
@@ -126,7 +147,9 @@ public class EventController {
                                                           @PathVariable @Positive Long eventId,
                                                           @PathVariable @Positive Long reqId) {
         ParticipationRequest request = eventService.confirmRequestInEvents(userId, eventId, reqId);
-        return requestMapper.toParRequestDto(request);
+        ParticipationRequestDto requestDto = requestMapper.toParRequestDto(request);
+        log.info("{}", requestDto);
+        return requestDto;
     }
 
     @PatchMapping(value = "/users/{userId}/events/{eventId}/requests/{reqId}/reject")
@@ -134,14 +157,8 @@ public class EventController {
                                                          @PathVariable @Positive Long eventId,
                                                          @PathVariable @Positive Long reqId) {
         ParticipationRequest request = eventService.rejectRequestInEvents(userId, eventId, reqId);
-        return requestMapper.toParRequestDto(request);
-    }
-
-    private void sendToStatServer(HttpServletRequest request) {
-        String ip = request.getRemoteAddr();
-        String uri = request.getRequestURI();
-        String service = "ewm-main-service";
-        String time = commonMethods.toString(LocalDateTime.now());
-        client.addEndpoint(ip, uri, service, time);
+        ParticipationRequestDto requestDto = requestMapper.toParRequestDto(request);
+        log.info("{}", requestDto);
+        return requestDto;
     }
 }

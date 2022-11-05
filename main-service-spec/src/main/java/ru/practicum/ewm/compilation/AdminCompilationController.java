@@ -28,7 +28,9 @@ public class AdminCompilationController {
     @PostMapping(value = "/admin/compilations")
     public CompilationDto addCompilations(@RequestBody @Validated(Create.class) NewCompilationDto newCompilationDto) {
         Compilation compilation = mapper.toCompilation(newCompilationDto);
-        return mapper.toCompilationDto(adminService.addCompilations(compilation));
+        CompilationDto compilationDto = mapper.toCompilationDto(adminService.addCompilations(compilation));
+        log.info("{}", compilationDto);
+        return compilationDto;
     }
 
     @DeleteMapping(value = "/admin/compilations/{compId}")

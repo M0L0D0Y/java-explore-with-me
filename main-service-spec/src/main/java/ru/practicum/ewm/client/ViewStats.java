@@ -1,4 +1,4 @@
-package ru.practicum.ewm.category.dto;
+package ru.practicum.ewm.client;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -13,10 +13,13 @@ import javax.validation.constraints.Size;
 @Setter
 @ToString
 @RequiredArgsConstructor
-public class CategoryDto {
-    @NotNull(message = "Отсутствует идентификатор")
-    private Long id;
-    @NotBlank(message = "Не указано название категории")
+public class ViewStats {
+    @NotBlank
+    @Size(max = 100, message = "Превышен лимит символов")
+    private String app;
+    @NotBlank
     @Size(max = 50, message = "Превышен лимит символов")
-    private String name;
+    private String uri;
+    @NotNull
+    private Long hits;
 }

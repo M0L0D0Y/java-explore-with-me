@@ -3,14 +3,14 @@ package ru.practicum.ewm.compilation.dto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.ewm.compilation.Compilation;
-import ru.practicum.ewm.event.dto.EventMapper;
-import ru.practicum.ewm.event.dto.EventShortDto;
 import ru.practicum.ewm.event.Event;
 import ru.practicum.ewm.event.EventStorage;
+import ru.practicum.ewm.event.dto.EventMapper;
+import ru.practicum.ewm.event.dto.EventShortDto;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class CompilationMapper {
@@ -38,10 +38,13 @@ public class CompilationMapper {
         compilationDto.setId(compilation.getId());
         compilationDto.setPinned(compilation.getPinned());
         compilationDto.setTitle(compilation.getTitle());
-        Set<Event> events = compilation.getEvents();
-        List<EventShortDto> eventShortDtoList = events.stream()
-                .map(eventMapper::toEventShortDto).collect(Collectors.toList());
-        compilationDto.setEvents(eventShortDtoList);
+        Set<Event> setEvents = compilation.getEvents();
+        List<EventShortDto> eventShortDtos = new ArrayList<>();
+        if (!setEvents.isEmpty()) {
+            List<Event> events = new ArrayList<>(setEvents);
+            eventShortDtos = eventMapper.toListEventShortDto(events);
+        }
+        compilationDto.setEvents(eventShortDtos);
         return compilationDto;
     }
 }

@@ -22,7 +22,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,12 +58,11 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Event getEvent(long id, HttpServletRequest request) {
+    public Event getEvent(long id) {
         Event event = commonMethods.checkExistEvent(id);
         if (!(event.getState().equals(EventState.PUBLISHED.toString()))) {
             throw new UnavailableException("Событие не опубликовано");
         }
-        event.setViews(event.getViews() + 1);
         return event;
     }
 
@@ -104,6 +102,7 @@ public class EventServiceImpl implements EventService {
                 predicates.add(searchPaid);
             }
         }
+        predicates.add(cb.equal(eventRoot.get("state"), EventState.PUBLISHED.toString()));
         predicates.add(commonMethods.buildingPredicateForSearchByStart(rangeStart, cb, eventRoot));
         predicates.add(commonMethods.buildingPredicateForSearchByEnd(rangeEnd, cb, eventRoot));
         Predicate[] param = new Predicate[predicates.size()];
@@ -121,10 +120,6 @@ public class EventServiceImpl implements EventService {
         TypedQuery<Event> query = entityManager.createQuery(cq);
         List<Event> results = query.setMaxResults(size).setFirstResult(from).getResultList();
         log.info("Найдены все события соответствующие заданным фильтрам");
-        for (Event event : results) {
-            event.setViews(event.getViews() + 1);
-        }
-
         return results;
     }
 
@@ -234,7 +229,6 @@ public class EventServiceImpl implements EventService {
         commonMethods.checkDateTime(start, event);
         event.setCreatedOn(start);
         event.setState(EventState.PENDING.toString());
-        event.setViews(0L);
     }
 
     private void checkUserIdAndOwnerEvent(long userId, long initiatorId) {
@@ -242,6 +236,4 @@ public class EventServiceImpl implements EventService {
             throw new NoRightsException("Данное событие добавил другой пользователь");
         }
     }
-
-
 }

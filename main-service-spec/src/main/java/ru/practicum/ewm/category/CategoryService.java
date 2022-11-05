@@ -7,5 +7,4 @@ public interface CategoryService {
 
     Category getCategoryById(long id);
 
-
 }

@@ -39,13 +39,17 @@ public class AdminUserController {
     public List<UserDto> getUsers(@RequestParam List<Long> ids,
                                   @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
                                   @RequestParam(defaultValue = "10") @Positive Integer size) {
-        return findUsers(ids, from, size);
+        List<UserDto> userDtos = findUsers(ids, from, size);
+        log.info("{}", userDtos);
+        return userDtos;
     }
 
     @PostMapping(value = "/admin/users")
     public UserDto addUser(@RequestBody @Validated(Create.class) NewUserRequest newUserRequest) {
         User user = userMapper.toUser(newUserRequest);
-        return userMapper.toUserDto(adminUserService.addUser(user));
+        UserDto userDto = userMapper.toUserDto(adminUserService.addUser(user));
+        log.info("{}", userDto);
+        return userDto;
     }
 
     @DeleteMapping(value = "/admin/users/{userId}")

@@ -2,11 +2,15 @@ package ru.practicum.ewm.common;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import ru.practicum.ewm.category.Category;
 import ru.practicum.ewm.category.CategoryStorage;
+import ru.practicum.ewm.client.Client;
+import ru.practicum.ewm.client.EndpointDto;
+import ru.practicum.ewm.client.ViewStats;
 import ru.practicum.ewm.compilation.Compilation;
 import ru.practicum.ewm.compilation.CompilationStorage;
 import ru.practicum.ewm.event.Event;
@@ -23,12 +27,17 @@ import ru.practicum.ewm.user.UserStorage;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.servlet.http.HttpServletRequest;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -36,22 +45,32 @@ public class CommonMethods {
     private static final String PATTERN = "yyyy-MM-dd HH:mm:ss";
     private static final SimpleDateFormat sdf =
             new SimpleDateFormat(PATTERN);
+
+    @Value("${stats-post.path}")
+    private String hitPostPath;
+    @Value("${stats-get.path}")
+    private String hitGetPath;
     private final UserStorage userStorage;
     private final EventStorage eventStorage;
     private final ParticipationRequestStorage requestStorage;
     private final CategoryStorage categoryStorage;
     private final CompilationStorage compilationStorage;
 
+    private final Client client;
+
     @Autowired
     public CommonMethods(UserStorage userStorage,
                          EventStorage eventStorage,
                          ParticipationRequestStorage requestStorage,
-                         CategoryStorage categoryStorage, CompilationStorage compilationStorage) {
+                         CategoryStorage categoryStorage,
+                         CompilationStorage compilationStorage,
+                         Client client) {
         this.userStorage = userStorage;
         this.eventStorage = eventStorage;
         this.requestStorage = requestStorage;
         this.categoryStorage = categoryStorage;
         this.compilationStorage = compilationStorage;
+        this.client = client;
     }
 
     public LocalDateTime toLocalDataTime(String dateTime) {
@@ -196,5 +215,55 @@ public class CommonMethods {
             page = size / from;
         }
         return PageRequest.of(page, size);
+    }
+
+    public void sendToStatServer(HttpServletRequest request) {
+        String ip = request.getRemoteAddr();
+        String uri = request.getRequestURI();
+        String app = "ewm-main-service";
+        String time = toString(LocalDateTime.now());
+        EndpointDto endpointDto = new EndpointDto();
+        endpointDto.setApp(app);
+        endpointDto.setTimestamp(time);
+        endpointDto.setIp(ip);
+        endpointDto.setUri(uri);
+        log.info("{}", endpointDto);
+        client.postHit(hitPostPath, endpointDto);
+    }
+
+    public List<Long> getViews(List<Event> events) {
+        List<Long> result = null;
+        List<Long> eventIds = events.stream().map(Event::getId).collect(Collectors.toList());
+        LocalDateTime start = null;
+        if (events.size() > 1) {
+            start = events.stream()
+                    .min(Comparator.comparing(Event::getPublishedOn))
+                    .orElseThrow()
+                    .getPublishedOn();
+        }
+        if (events.size() == 1) {
+            start = events.get(0).getPublishedOn();
+            if (events.get(0).getPublishedOn() == null) {
+                start = events.get(0).getCreatedOn();
+            }
+        }
+
+        Boolean unique = false;
+        List<ViewStats> views = client.getStats(hitGetPath, start, LocalDateTime.now(), eventIds, unique);
+        log.info("Данные из статистики {}", views);
+        if (views != null && views.size() > 1) {
+            result = views.stream().map(ViewStats::getHits).collect(Collectors.toList());
+        }
+        if (views != null && views.size() == 1) {
+            result = views.stream().map(ViewStats::getHits).collect(Collectors.toList());
+        }
+        if (views == null) {
+            List<Long> zeroViews = new ArrayList<>();
+            for (int i = 0; i < eventIds.size(); i++) {
+                zeroViews.add(0L);
+            }
+            result = zeroViews;
+        }
+        return result;
     }
 }

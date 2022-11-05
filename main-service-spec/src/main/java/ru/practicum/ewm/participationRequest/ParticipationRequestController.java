@@ -29,22 +29,28 @@ public class ParticipationRequestController {
     @GetMapping(value = "/users/{userId}/requests")
     public List<ParticipationRequestDto> getRequestInfoForUser(@PathVariable @Positive Long userId) {
         List<ParticipationRequest> requestList = service.getRequestInfoForUser(userId);
-        return requestList.stream()
+        List<ParticipationRequestDto> requestDtoList = requestList.stream()
                 .map(mapper::toParRequestDto)
                 .collect(Collectors.toList());
+        log.info("{}", requestDtoList);
+        return requestDtoList;
     }
 
     @PostMapping(value = "/users/{userId}/requests")
     public ParticipationRequestDto addRequestForEvent(@PathVariable @Positive Long userId,
                                                       @RequestParam @Positive Long eventId) {
         ParticipationRequest request = service.addRequestForEvent(userId, eventId);
-        return mapper.toParRequestDto(request);
+        ParticipationRequestDto requestDto = mapper.toParRequestDto(request);
+        log.info("{}", requestDto);
+        return requestDto;
     }
 
     @PatchMapping(value = "/users/{userId}/requests/{requestsId}/cancel")
     public ParticipationRequestDto cancelRequestForEvent(@PathVariable @Positive Long userId,
                                                          @PathVariable @Positive Long requestsId) {
         ParticipationRequest request = service.cancelRequestForEvent(userId, requestsId);
-        return mapper.toParRequestDto(request);
+        ParticipationRequestDto requestDto = mapper.toParRequestDto(request);
+        log.info("{}", requestDto);
+        return requestDto;
     }
 }

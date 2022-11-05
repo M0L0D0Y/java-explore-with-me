@@ -40,5 +40,4 @@ public class CompilationServiceImpl implements CompilationService {
         log.info("Подборка событий с id = " + compId + " найдена");
         return compilation;
     }
-
 }

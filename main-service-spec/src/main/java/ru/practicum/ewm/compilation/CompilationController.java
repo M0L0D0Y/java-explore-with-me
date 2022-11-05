@@ -37,16 +37,18 @@ public class CompilationController {
                                                 @RequestParam(defaultValue = "10") Integer size) {
         Pageable pageable = commonMethods.getPageable(from, size);
         List<Compilation> compilations = compilationService.getCompilations(pinned, pageable);
-        return compilations.stream()
+        List<CompilationDto> compilationDtos = compilations.stream()
                 .map(mapper::toCompilationDto)
                 .collect(Collectors.toList());
+        log.info("{}", compilationDtos);
+        return compilationDtos;
     }
 
     @GetMapping(value = "/compilations/{compId}")
     public CompilationDto getCompilation(@PathVariable @Positive Long compId) {
         Compilation compilation = compilationService.getCompilation(compId);
-        return mapper.toCompilationDto(compilation);
+        CompilationDto compilationDto = mapper.toCompilationDto(compilation);
+        log.info("{}", compilationDto);
+        return compilationDto;
     }
-
-
 }

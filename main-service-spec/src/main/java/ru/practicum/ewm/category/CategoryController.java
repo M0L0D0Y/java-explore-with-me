@@ -28,18 +28,19 @@ public class CategoryController {
     @GetMapping(value = "/categories")
     public List<CategoryDto> getCategories(@RequestParam(defaultValue = "10") Integer from,
                                            @RequestParam(defaultValue = "10") Integer size) {
-        return categoryService.getCategories(from, size)
+        List<CategoryDto> categoryDtos = categoryService.getCategories(from, size)
                 .stream()
                 .map(categoryMapper::toCategoryDto)
                 .collect(Collectors.toList());
+        log.info("{}", categoryDtos);
+        return categoryDtos;
 
     }
 
     @GetMapping(value = "/categories/{catId}")
     public CategoryDto getCategory(@PathVariable @Positive Long catId) {
-        return categoryMapper.toCategoryDto(categoryService.getCategoryById(catId));
-
+        CategoryDto categoryDto = categoryMapper.toCategoryDto(categoryService.getCategoryById(catId));
+        log.info("{}", categoryDto);
+        return categoryDto;
     }
-
-
 }
