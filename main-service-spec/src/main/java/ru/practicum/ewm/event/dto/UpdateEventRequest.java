@@ -32,5 +32,4 @@ public class UpdateEventRequest {
     @Max(120)
     @NotBlank(groups = Update.class, message = "Не указан заголовок события")
     private String title;
-
 }

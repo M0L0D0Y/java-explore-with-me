@@ -24,5 +24,4 @@ public class ParticipationRequestMapper {
         parRequestDto.setId(parRequest.getId());
         return parRequestDto;
     }
-
 }

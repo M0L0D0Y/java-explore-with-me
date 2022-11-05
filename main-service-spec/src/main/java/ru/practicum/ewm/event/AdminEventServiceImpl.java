@@ -103,6 +103,4 @@ public class AdminEventServiceImpl implements AdminEventService {
         log.info("Событие с id {} отклонено", eventId);
         return publishedEvent;
     }
-
-
 }

@@ -58,8 +58,7 @@ public class SubscriptionController {
                                                @PathVariable @NotNull @Positive Long friendId,
                                                @RequestParam(defaultValue = "false") @NotNull Boolean isCommonFriend) {
         List<Event> events = subscriptionService.getEventsByFriendId(userId, friendId, isCommonFriend);
-        List<EventShortDto> eventShortDtos = events.stream()
-                .map(eventMapper::toEventShortDto).collect(Collectors.toList());
+        List<EventShortDto> eventShortDtos = eventMapper.toListEventShortDto(events);
         log.info("{}", eventShortDtos);
         return eventShortDtos;
     }
@@ -67,8 +66,7 @@ public class SubscriptionController {
     @GetMapping(value = "/events")
     public List<EventShortDto> getEventsAllFriends(@PathVariable @NotNull @Positive Long userId) {
         List<Event> events = subscriptionService.getEventsAllFriends(userId);
-        List<EventShortDto> eventShortDtos = events.stream()
-                .map(eventMapper::toEventShortDto).collect(Collectors.toList());
+        List<EventShortDto> eventShortDtos = eventMapper.toListEventShortDto(events);
         log.info("{}", eventShortDtos);
         return eventShortDtos;
     }

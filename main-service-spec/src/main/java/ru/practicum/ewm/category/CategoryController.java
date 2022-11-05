@@ -42,8 +42,5 @@ public class CategoryController {
         CategoryDto categoryDto = categoryMapper.toCategoryDto(categoryService.getCategoryById(catId));
         log.info("{}", categoryDto);
         return categoryDto;
-
     }
-
-
 }

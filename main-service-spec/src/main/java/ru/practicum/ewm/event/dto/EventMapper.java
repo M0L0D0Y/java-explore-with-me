@@ -12,6 +12,10 @@ import ru.practicum.ewm.user.User;
 import ru.practicum.ewm.user.dto.UserMapper;
 import ru.practicum.ewm.user.dto.UserShortDto;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class EventMapper {
     private final CategoryMapper categoryMapper;
@@ -27,7 +31,45 @@ public class EventMapper {
         this.commonMethods = commonMethods;
     }
 
-    public EventFullDto toEventFullDto(Event event) {
+    public Event toEvent(NewEventDto newEventDto) {
+        Event event = new Event();
+        event.setAnnotation(newEventDto.getAnnotation());
+        Category category = commonMethods.checkExistCategory(newEventDto.getCategory());
+        event.setCategory(category);
+        event.setDescription(newEventDto.getDescription());
+        event.setEventDate(commonMethods.toLocalDataTime(newEventDto.getEventDate()));
+        event.setLocation(newEventDto.getLocation());
+        insertingUnvalidatedFields(event, newEventDto);
+        event.setTitle(newEventDto.getTitle());
+        return event;
+    }
+
+    public List<EventFullDto> toListEventFullDto(List<Event> events) {
+        if (events.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<Long> views = commonMethods.getViews(events);
+        List<EventFullDto> eventFullDtos = events.stream().map(this::toEventFullDto).collect(Collectors.toList());
+        for (int i = 0; i < events.size(); i++) {
+            eventFullDtos.get(i).setViews(views.get(i));
+        }
+        return eventFullDtos;
+
+    }
+
+    public List<EventShortDto> toListEventShortDto(List<Event> events) {
+        if (events.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<Long> views = commonMethods.getViews(events);
+        List<EventShortDto> eventFullDtos = events.stream().map(this::toEventShortDto).collect(Collectors.toList());
+        for (int i = 0; i < events.size(); i++) {
+            eventFullDtos.get(i).setViews(views.get(i));
+        }
+        return eventFullDtos;
+    }
+
+    private EventFullDto toEventFullDto(Event event) {
         EventFullDto eventFullDto = new EventFullDto();
         eventFullDto.setId(event.getId());
         eventFullDto.setAnnotation(event.getAnnotation());
@@ -49,7 +91,6 @@ public class EventMapper {
         if (event.getPublishedOn() != null) {
             String publishedOn = commonMethods.toString(event.getPublishedOn());
             eventFullDto.setPublishedOn(publishedOn);
-            eventFullDto.setViews(commonMethods.getViews(event));
         }
         eventFullDto.setRequestModeration(event.getRequestModeration());
         EventState state = EventState.valueOf(event.getState());
@@ -58,7 +99,7 @@ public class EventMapper {
         return eventFullDto;
     }
 
-    public EventShortDto toEventShortDto(Event event) {
+    private EventShortDto toEventShortDto(Event event) {
         EventShortDto eventShortDto = new EventShortDto();
         eventShortDto.setId(event.getId());
         eventShortDto.setAnnotation(event.getAnnotation());
@@ -73,25 +114,7 @@ public class EventMapper {
         eventShortDto.setInitiator(userShortDto);
         eventShortDto.setPaid(event.getPaid());
         eventShortDto.setTitle(event.getTitle());
-        if (event.getPublishedOn() != null) {
-            eventShortDto.setViews(commonMethods.getViews(event));
-        } else {
-            eventShortDto.setViews(0L);
-        }
         return eventShortDto;
-    }
-
-    public Event toEvent(NewEventDto newEventDto) {
-        Event event = new Event();
-        event.setAnnotation(newEventDto.getAnnotation());
-        Category category = commonMethods.checkExistCategory(newEventDto.getCategory());
-        event.setCategory(category);
-        event.setDescription(newEventDto.getDescription());
-        event.setEventDate(commonMethods.toLocalDataTime(newEventDto.getEventDate()));
-        event.setLocation(newEventDto.getLocation());
-        insertingUnvalidatedFields(event, newEventDto);
-        event.setTitle(newEventDto.getTitle());
-        return event;
     }
 
     private void insertingUnvalidatedFields(Event event, NewEventDto newEventDto) {

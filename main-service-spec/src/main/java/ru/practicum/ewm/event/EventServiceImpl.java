@@ -102,6 +102,7 @@ public class EventServiceImpl implements EventService {
                 predicates.add(searchPaid);
             }
         }
+        predicates.add(cb.equal(eventRoot.get("state"), EventState.PUBLISHED.toString()));
         predicates.add(commonMethods.buildingPredicateForSearchByStart(rangeStart, cb, eventRoot));
         predicates.add(commonMethods.buildingPredicateForSearchByEnd(rangeEnd, cb, eventRoot));
         Predicate[] param = new Predicate[predicates.size()];
@@ -235,6 +236,4 @@ public class EventServiceImpl implements EventService {
             throw new NoRightsException("Данное событие добавил другой пользователь");
         }
     }
-
-
 }

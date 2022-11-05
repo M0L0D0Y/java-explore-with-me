@@ -54,11 +54,9 @@ public class EventController {
                                          HttpServletRequest request) {
         commonMethods.sendToStatServer(request);
         log.info("Отправили пакет данных в статистику");
-        List<Event> eventList = eventService.getEvents(text, categories, paid, rangeStart,
+        List<Event> events = eventService.getEvents(text, categories, paid, rangeStart,
                 rangeEnd, onlyAvailable, sort, from, size);
-        List<EventShortDto> eventShortDtos = eventList.stream()
-                .map(eventMapper::toEventShortDto)
-                .collect(Collectors.toList());
+        List<EventShortDto> eventShortDtos = eventMapper.toListEventShortDto(events);
         log.info("{}", eventShortDtos);
         return eventShortDtos;
     }
@@ -68,7 +66,9 @@ public class EventController {
         commonMethods.sendToStatServer(request);
         log.info("Отправили пакет данных в статистику");
         Event event = eventService.getEvent(id);
-        EventFullDto eventFullDto = eventMapper.toEventFullDto(event);
+        List<Event> events = List.of(event);
+        List<EventFullDto> eventFullDtos = eventMapper.toListEventFullDto(events);
+        EventFullDto eventFullDto = eventFullDtos.get(0);
         log.info("{}", eventFullDto);
         return eventFullDto;
     }
@@ -78,9 +78,7 @@ public class EventController {
                                                 @RequestParam(defaultValue = "0") Integer from,
                                                 @RequestParam(defaultValue = "10") Integer size) {
         List<Event> events = eventService.getEventsForUser(userId, from, size);
-        List<EventShortDto> eventShortDtos = events.stream()
-                .map(eventMapper::toEventShortDto)
-                .collect(Collectors.toList());
+        List<EventShortDto> eventShortDtos = eventMapper.toListEventShortDto(events);
         log.info("{}", eventShortDtos);
         return eventShortDtos;
     }
@@ -91,7 +89,9 @@ public class EventController {
                                            UpdateEventRequest updateEventRequest) {
 
         Event event = eventService.updateEventForUser(userId, updateEventRequest);
-        EventFullDto eventFullDto = eventMapper.toEventFullDto(event);
+        List<Event> events = List.of(event);
+        List<EventFullDto> eventFullDtos = eventMapper.toListEventFullDto(events);
+        EventFullDto eventFullDto = eventFullDtos.get(0);
         log.info("{}", eventFullDto);
         return eventFullDto;
     }
@@ -99,8 +99,11 @@ public class EventController {
     @PostMapping(value = "/users/{userId}/events")
     private EventFullDto addEvent(@PathVariable @Positive Long userId,
                                   @RequestBody @Validated(Create.class) NewEventDto newEventDto) {
-        Event event = eventMapper.toEvent(newEventDto);
-        EventFullDto eventFullDto = eventMapper.toEventFullDto(eventService.addEvent(userId, event));
+        Event newEvent = eventMapper.toEvent(newEventDto);
+        Event event = eventService.addEvent(userId, newEvent);
+        List<Event> events = List.of(event);
+        List<EventFullDto> eventFullDtos = eventMapper.toListEventFullDto(events);
+        EventFullDto eventFullDto = eventFullDtos.get(0);
         log.info("{}", eventFullDto);
         return eventFullDto;
     }
@@ -109,7 +112,9 @@ public class EventController {
     public EventFullDto getFullInfoEventForUser(@PathVariable @Positive Long userId,
                                                 @PathVariable @Positive Long eventId) {
         Event event = eventService.getFullInfoEventForUser(userId, eventId);
-        EventFullDto eventFullDto = eventMapper.toEventFullDto(event);
+        List<Event> events = List.of(event);
+        List<EventFullDto> eventFullDtos = eventMapper.toListEventFullDto(events);
+        EventFullDto eventFullDto = eventFullDtos.get(0);
         log.info("{}", eventFullDto);
         return eventFullDto;
     }
@@ -118,7 +123,9 @@ public class EventController {
     public EventFullDto cancelEvent(@PathVariable @Positive Long userId,
                                     @PathVariable @Positive Long eventId) {
         Event event = eventService.cancelEvent(userId, eventId);
-        EventFullDto eventFullDto = eventMapper.toEventFullDto(event);
+        List<Event> events = List.of(event);
+        List<EventFullDto> eventFullDtos = eventMapper.toListEventFullDto(events);
+        EventFullDto eventFullDto = eventFullDtos.get(0);
         log.info("{}", eventFullDto);
         return eventFullDto;
 

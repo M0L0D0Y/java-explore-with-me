@@ -4,10 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -24,18 +23,26 @@ public class Client {
         rest.postForEntity(path, hit, EndpointDto.class);
     }
 
-    public ViewStats getStats(String path, LocalDateTime start, LocalDateTime end, Long eventId, Boolean unique) {
+    public List<ViewStats> getStats(String path,
+                                    LocalDateTime start,
+                                    LocalDateTime end,
+                                    List<Long> eventIds,
+                                    Boolean unique) {
+        List<String> uris = new ArrayList<>();
+        for (Long eventId : eventIds) {
+            uris.add("/events/" + eventId);
+        }
         ViewStats[] stats = rest.getForObject(
                 String.format(
                         path,
                         start.format(formatter),
                         end.format(formatter),
-                        List.of(URLEncoder.encode("/events/" + eventId, StandardCharsets.UTF_8)),
+                        uris,
                         unique),
                 ViewStats[].class
         );
         if (stats != null) {
-            return stats.length > 0 ? stats[0] : null;
+            return stats.length > 0 ? List.of(stats) : null;
         } else {
             return null;
         }

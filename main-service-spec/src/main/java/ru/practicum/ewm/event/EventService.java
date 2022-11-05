@@ -26,6 +26,4 @@ public interface EventService {
     ParticipationRequest confirmRequestInEvents(long userId, long eventId, long reqId);
 
     ParticipationRequest rejectRequestInEvents(long userId, long eventId, long reqId);
-
-
 }

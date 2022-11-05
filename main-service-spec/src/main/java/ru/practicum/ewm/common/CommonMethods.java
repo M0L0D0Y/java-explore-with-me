@@ -33,7 +33,11 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -227,10 +231,39 @@ public class CommonMethods {
         client.postHit(hitPostPath, endpointDto);
     }
 
-    public Long getViews(Event event) {
+    public List<Long> getViews(List<Event> events) {
+        List<Long> result = null;
+        List<Long> eventIds = events.stream().map(Event::getId).collect(Collectors.toList());
+        LocalDateTime start = null;
+        if (events.size() > 1) {
+            start = events.stream()
+                    .min(Comparator.comparing(Event::getPublishedOn))
+                    .orElseThrow()
+                    .getPublishedOn();
+        }
+        if (events.size() == 1) {
+            start = events.get(0).getPublishedOn();
+            if (events.get(0).getPublishedOn() == null) {
+                start = events.get(0).getCreatedOn();
+            }
+        }
+
         Boolean unique = false;
-        ViewStats views = client.getStats(hitGetPath, event.getPublishedOn(), LocalDateTime.now(), event.getId(), unique);
+        List<ViewStats> views = client.getStats(hitGetPath, start, LocalDateTime.now(), eventIds, unique);
         log.info("Данные из статистики {}", views);
-        return views != null ? views.getHits() : 0L;
+        if (views != null && views.size() > 1) {
+            result = views.stream().map(ViewStats::getHits).collect(Collectors.toList());
+        }
+        if (views != null && views.size() == 1) {
+            result = views.stream().map(ViewStats::getHits).collect(Collectors.toList());
+        }
+        if (views == null) {
+            List<Long> zeroViews = new ArrayList<>();
+            for (int i = 0; i < eventIds.size(); i++) {
+                zeroViews.add(0L);
+            }
+            result = zeroViews;
+        }
+        return result;
     }
 }

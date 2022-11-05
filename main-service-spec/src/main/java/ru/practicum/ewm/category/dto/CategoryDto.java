@@ -19,5 +19,4 @@ public class CategoryDto {
     @NotBlank(message = "Не указано название категории")
     @Size(max = 50, message = "Превышен лимит символов")
     private String name;
-
 }

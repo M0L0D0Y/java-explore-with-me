@@ -36,6 +36,4 @@ public class CategoryServiceImpl implements CategoryService {
         log.info("Категория с id = {} найдена", id);
         return category;
     }
-
-
 }

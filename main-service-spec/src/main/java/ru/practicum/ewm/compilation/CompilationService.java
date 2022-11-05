@@ -8,6 +8,4 @@ public interface CompilationService {
     List<Compilation> getCompilations(Boolean pinned, Pageable pageable);
 
     Compilation getCompilation(long compId);
-
-
 }
